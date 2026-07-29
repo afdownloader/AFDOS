@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFDOS — Any-Flavor Desktop OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{ --accent:#0a84ff; --radius:10px; --taskbar-h:44px; --font:'Inter','Segoe UI',Tahoma,sans-serif; --mono:'JetBrains Mono',Consolas,monospace;
+  --glass: rgba(255,255,255,.7); --glass-strong: rgba(255,255,255,.86); --shadow-win: 0 24px 60px -12px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.15); }
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;font-family:var(--font);user-select:none;-webkit-font-smoothing:antialiased;}
+body{position:relative;}
+button{font-family:inherit;}
+::-webkit-scrollbar{width:9px;height:9px;} ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.25);border-radius:6px;} ::-webkit-scrollbar-track{background:transparent;}
+
+.gi{display:inline-flex;align-items:center;justify-content:center;border-radius:22%;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.25);}
+.gi svg{width:58%;height:58%;}
+.bg-folder{background:linear-gradient(155deg,#6dd5fa,#2980b9);} .bg-files{background:linear-gradient(155deg,#38ef7d,#11998e);}
+.bg-notepad{background:linear-gradient(155deg,#f6d365,#fda085);} .bg-calc{background:linear-gradient(155deg,#3a3a3a,#111);}
+.bg-terminal{background:linear-gradient(155deg,#232526,#0f0f0f);} .bg-settings{background:linear-gradient(155deg,#bdc3c7,#6b7280);}
+.bg-about{background:linear-gradient(155deg,#a18cd1,#fbc2eb);} .bg-trash{background:linear-gradient(155deg,#8e9eab,#4a5560);}
+.bg-image{background:linear-gradient(155deg,#f7971e,#c23f0a);} .bg-sheet{background:linear-gradient(155deg,#34c759,#0a8a3a);}
+.bg-doc{background:linear-gradient(155deg,#4facfe,#0a5fc4);} .bg-archive{background:linear-gradient(155deg,#8d7b68,#4e3f34);}
+.bg-exe{background:linear-gradient(155deg,#66788f,#2c3a4b);} .bg-txt{background:linear-gradient(155deg,#a8adb4,#6b7280);}
+.bg-sysinfo{background:linear-gradient(155deg,#00c6ff,#0072ff);} .bg-publisher{background:linear-gradient(155deg,#f77062,#fe5196);}
+
+#boot{position:fixed;inset:0;background:#000;color:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .7s ease;}
+#boot.hide{opacity:0;pointer-events:none;}
+#boot .logo{width:84px;height:84px;border-radius:22px;background:linear-gradient(135deg,#4facfe,#0a84ff);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;color:#fff;box-shadow:0 0 60px rgba(10,132,255,.5);animation:pulse 1.7s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.07);}}
+#boot .barwrap{width:240px;height:3px;background:#242424;border-radius:2px;overflow:hidden;}
+#boot .bar{height:100%;width:0%;background:linear-gradient(90deg,#4facfe,#0a84ff);animation:load 2s ease forwards;}
+@keyframes load{to{width:100%;}}
+#boot .txt{font-size:13px;letter-spacing:.5px;color:#888;}
+
+#lock{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background-size:cover;transition:opacity .5s ease, transform .5s ease;}
+#lock.hide{opacity:0;transform:scale(1.04);pointer-events:none;}
+#lock .clk{font-size:60px;font-weight:700;text-shadow:0 4px 24px rgba(0,0,0,.4);}
+#lock .dt{font-size:13px;opacity:.85;margin-top:4px;margin-bottom:16px;}
+#lock .langs{display:flex;gap:6px;margin-bottom:18px;}
+#lock .langs button{padding:5px 11px;border-radius:20px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font-size:11.5px;cursor:pointer;}
+#lock .langs button.active{background:rgba(255,255,255,.35);}
+#lock .avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#4facfe,#0a84ff);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;margin-bottom:10px;box-shadow:0 8px 30px rgba(0,0,0,.35);}
+#lock .name{font-size:14px;font-weight:600;margin-bottom:10px;}
+#lock .pwdrow{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(16px);border-radius:24px;padding:6px 6px 6px 18px;}
+#lock input{background:transparent;border:none;outline:none;color:#fff;font-size:14px;width:170px;}
+#lock input::placeholder{color:rgba(255,255,255,.6);}
+#lock .go{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#lock .go:hover{background:rgba(255,255,255,.4);}
+#lock .hint{margin-top:14px;font-size:12px;opacity:.6;}
+
+#desktop{position:absolute;inset:0;overflow:hidden;background:#0b1526;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.6;mix-blend-mode:screen;will-change:transform;}
+.b1{width:52vw;height:52vw;top:-14%;left:-12%;animation:float1 28s ease-in-out infinite alternate;}
+.b2{width:46vw;height:46vw;bottom:-16%;right:-10%;animation:float2 34s ease-in-out infinite alternate;}
+.b3{width:40vw;height:40vw;top:26%;right:14%;animation:float3 24s ease-in-out infinite alternate;}
+@keyframes float1{to{transform:translate(9%,10%) scale(1.12);}} @keyframes float2{to{transform:translate(-7%,-9%) scale(1.16);}} @keyframes float3{to{transform:translate(6%,-11%) scale(.94);}}
+.wallpaper-1{background:#0b1526;} .wallpaper-1 .b1{background:#4facfe;} .wallpaper-1 .b2{background:#0a84ff;} .wallpaper-1 .b3{background:#1e3c72;}
+.wallpaper-2{background:#0d1a1c;} .wallpaper-2 .b1{background:#2c5364;} .wallpaper-2 .b2{background:#0f2027;} .wallpaper-2 .b3{background:#38ef7d;}
+.wallpaper-3{background:#1a0d0d;} .wallpaper-3 .b1{background:#ff5e62;} .wallpaper-3 .b2{background:#ff9966;} .wallpaper-3 .b3{background:#c23f0a;}
+.wallpaper-4{background:#07211c;} .wallpaper-4 .b1{background:#134e5e;} .wallpaper-4 .b2{background:#71b280;} .wallpaper-4 .b3{background:#0a8a3a;}
+.wallpaper-5{background:#1a0d29;} .wallpaper-5 .b1{background:#3a1c71;} .wallpaper-5 .b2{background:#d76d77;} .wallpaper-5 .b3{background:#ffaf7b;}
+
+#icons{position:absolute;top:16px;inset-inline-start:16px;display:flex;flex-direction:column;flex-wrap:wrap;gap:2px;height:calc(100% - 100px);align-content:flex-start;}
+[data-theme="mac"] #icons, [data-theme="linux"] #icons{top:46px;}
+.dicon{width:74px;padding:8px 4px 6px;border-radius:8px;text-align:center;cursor:pointer;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);}
+.dicon:hover{background:rgba(255,255,255,.14);}
+.dicon.sel{background:rgba(10,132,255,.35);outline:1px solid rgba(255,255,255,.4);}
+.dicon .gi{width:38px;height:38px;margin:0 auto 5px;}
+.dicon .lbl{font-size:11px;word-break:break-word;line-height:1.25;}
+
+#ctxmenu{position:fixed;z-index:5000;min-width:210px;background:var(--glass-strong);backdrop-filter:blur(24px) saturate(1.6);border-radius:12px;box-shadow:var(--shadow-win);padding:6px;display:none;border:1px solid rgba(255,255,255,.5);}
+#ctxmenu .item{padding:9px 14px;font-size:13px;border-radius:8px;cursor:pointer;color:#111;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+#ctxmenu .item:hover{background:var(--accent);color:#fff;}
+#ctxmenu hr{border:none;border-top:1px solid rgba(0,0,0,.1);margin:5px 3px;}
+#ctxmenu .sub{position:relative;}
+#ctxmenu .submenu{display:none;position:absolute;inset-inline-start:100%;top:0;min-width:180px;background:var(--glass-strong);backdrop-filter:blur(24px);border-radius:12px;padding:6px;box-shadow:var(--shadow-win);border:1px solid rgba(255,255,255,.5);}
+#ctxmenu .sub:hover .submenu{display:block;}
+
+#winlayer{position:absolute;inset:0;pointer-events:none;}
+.win{position:absolute;min-width:250px;min-height:180px;background:#f5f5f7;border-radius:12px;overflow:hidden;box-shadow:var(--shadow-win);pointer-events:auto;display:flex;flex-direction:column;border:1px solid rgba(0,0,0,.12);animation:winOpen .22s cubic-bezier(.2,.9,.3,1.1);}
+@keyframes winOpen{from{opacity:0;transform:scale(.93) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.win.max{border-radius:0;}
+.win .titlebar{height:36px;background:linear-gradient(#fbfbfb,#eee);display:flex;align-items:center;padding:0 8px;cursor:move;flex-shrink:0;border-bottom:1px solid #e0e0e0;gap:6px;}
+.win .titlebar .ttl{flex:1;font-size:12.5px;font-weight:600;color:#333;display:flex;align-items:center;gap:7px;}
+.win .titlebar .ttl .gi{width:18px;height:18px;border-radius:6px;}
+.win .btns{display:flex;gap:3px;}
+.win .btns button{width:26px;height:22px;border:none;background:transparent;border-radius:6px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;justify-content:center;}
+.win .btns button:hover{background:rgba(0,0,0,.08);}
+.win .btns .close:hover{background:#e81123;color:#fff;}
+.win .content{flex:1;overflow:auto;background:#fff;position:relative;}
+.win .resize{position:absolute;width:16px;height:16px;inset-inline-end:2px;bottom:2px;cursor:nwse-resize;}
+.win.focused{box-shadow:0 30px 80px -10px rgba(0,0,0,.55), 0 2px 10px rgba(0,0,0,.2);}
+.win.minimized{display:none;}
+[data-theme="mac"] .win{border-radius:12px;}
+[data-theme="mac"] .win .titlebar{background:linear-gradient(#f0f0f0,#e2e2e2);justify-content:flex-start;}
+[data-theme="mac"] .win .btns{order:-1;margin-inline-end:12px;}
+[data-theme="mac"] .win .btns button{width:12px;height:12px;border-radius:50%;font-size:0;padding:0;}
+[data-theme="mac"] .win .btns .close{background:#ff5f57;} [data-theme="mac"] .win .btns .min{background:#febc2e;} [data-theme="mac"] .win .btns .max{background:#28c840;}
+[data-theme="mac"] .win .btns button:hover{filter:brightness(.85);}
+[data-theme="mac"] .win .titlebar .ttl{justify-content:center;}
+[data-theme="linux"] .win{border-radius:12px;}
+[data-theme="linux"] .win .titlebar{background:#3a3a3a;color:#fff;}
+[data-theme="linux"] .win .titlebar .ttl{color:#eee;}
+[data-theme="linux"] .win .btns button{color:#eee;}
+[data-theme="linux"] .win .btns .close:hover{background:#e01b24;}
+
+.chrome{display:none;position:fixed;z-index:4000;}
+[data-theme="win"] .win-chrome{display:flex;} [data-theme="mac"] .mac-chrome{display:flex;} [data-theme="linux"] .linux-chrome{display:flex;}
+.win-chrome.taskbar{bottom:0;inset-inline-start:0;width:100%;height:var(--taskbar-h);background:rgba(24,24,27,.72);backdrop-filter:blur(28px) saturate(1.8);align-items:center;justify-content:center;gap:4px;color:#fff;border-top:1px solid rgba(255,255,255,.08);}
+.win-chrome .start-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;}
+.win-chrome .start-btn:hover{background:rgba(255,255,255,.12);}
+.win-chrome .taskicon{width:36px;height:36px;border-radius:8px;background:transparent;border:none;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;}
+.win-chrome .taskicon .gi{width:22px;height:22px;border-radius:6px;}
+.win-chrome .taskicon:hover{background:rgba(255,255,255,.12);}
+.win-chrome .taskicon.running::after{content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#4cc2ff;box-shadow:0 0 6px #4cc2ff;}
+.win-chrome .systray{position:absolute;inset-inline-end:14px;top:0;height:100%;display:flex;align-items:center;gap:12px;font-size:12.5px;color:#fff;}
+.mac-chrome.topbar{top:0;inset-inline-start:0;width:100%;height:28px;background:rgba(246,246,246,.68);backdrop-filter:blur(24px) saturate(1.8);align-items:center;padding:0 16px;gap:18px;font-size:13px;color:#111;border-bottom:1px solid rgba(0,0,0,.06);}
+.mac-chrome .apple{cursor:pointer;display:flex;align-items:center;}
+.mac-chrome .apple svg{width:13px;height:13px;}
+.win-chrome .start-btn svg{width:18px;height:18px;}
+.mac-chrome .menuitem{cursor:default;opacity:.85;font-weight:600;}
+.mac-chrome .spacer{flex:1;}
+.mac-chrome .sysicons{display:flex;gap:14px;align-items:center;font-size:12.5px;}
+.mac-chrome.dock{bottom:7px;left:50%;right:auto;transform:translateX(-50%);background:rgba(255,255,255,.35);backdrop-filter:blur(26px) saturate(1.8);border:1px solid rgba(255,255,255,.55);border-radius:18px;padding:7px 9px;gap:9px;align-items:flex-end;}
+.mac-chrome .dockicon{width:42px;height:42px;border-radius:11px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s cubic-bezier(.2,.8,.3,1.2);position:relative;padding:0;}
+.mac-chrome .dockicon .gi{width:100%;height:100%;}
+.mac-chrome .dockicon:hover{transform:translateY(-14px) scale(1.1);}
+.mac-chrome .dockicon.running::after{content:"";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#333;}
+.linux-chrome.topbar{top:0;inset-inline-start:0;width:100%;height:30px;background:rgba(18,18,20,.78);backdrop-filter:blur(24px) saturate(1.8);align-items:center;color:#fff;font-size:12.5px;padding:0 12px;}
+.linux-chrome .activities{background:transparent;border:none;color:#fff;cursor:pointer;font-size:12.5px;padding:3px 12px;border-radius:6px;}
+.linux-chrome .activities:hover{background:rgba(255,255,255,.12);}
+.linux-chrome .clockc{position:absolute;left:50%;transform:translateX(-50%);font-weight:600;}
+.linux-chrome .sysicons{position:absolute;right:12px;display:flex;gap:12px;align-items:center;}
+.linux-chrome.dock{top:50%;transform:translateY(-50%);inset-inline-start:6px;flex-direction:column;background:rgba(18,18,20,.62);backdrop-filter:blur(20px) saturate(1.8);border-radius:14px;padding:8px 6px;gap:7px;}
+.linux-chrome .dockicon{width:40px;height:40px;border-radius:10px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;padding:0;}
+.linux-chrome .dockicon .gi{width:100%;height:100%;}
+.linux-chrome .dockicon:hover{transform:scale(1.08);}
+.linux-chrome .dockicon.running::before{content:"";position:absolute;inset-inline-start:-7px;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:2px;background:#fff;}
+
+#launcher{position:fixed;z-index:4500;display:none;background:var(--glass-strong);backdrop-filter:blur(30px) saturate(1.8);border:1px solid rgba(255,255,255,.55);border-radius:16px;box-shadow:var(--shadow-win);padding:14px;}
+#launcher.show{display:block;animation:winOpen .18s ease;}
+#launcher .search{width:100%;padding:8px 12px;border-radius:9px;border:1px solid #d8d8d8;margin-bottom:10px;font-size:13px;outline:none;background:#fff;}
+#launcher .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:280px;overflow:auto;}
+#launcher .app{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;border-radius:10px;cursor:pointer;color:#111;}
+#launcher .app:hover{background:rgba(0,0,0,.07);}
+#launcher .app .gi{width:40px;height:40px;}
+#launcher .app .lbl{font-size:11px;text-align:center;}
+
+#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,20,22,.92);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.3s cubic-bezier(.2,.8,.3,1);z-index:6000;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:340px;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.app-toolbar{display:flex;gap:5px;padding:6px 8px;background:#f7f7f8;border-bottom:1px solid #e4e4e4;align-items:center;flex-wrap:wrap;}
+.app-toolbar button{border:1px solid #d6d6d6;background:#fff;border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#333;}
+.app-toolbar button svg{width:13px;height:13px;}
+.app-toolbar button:hover{background:#eef2ff;border-color:#c7d6ff;}
+.app-toolbar .inline-create{display:flex;gap:5px;align-items:center;}
+.app-toolbar input{border:1px solid #cfcfcf;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;}
+
+.notepad-wrap{display:flex;height:100%;} .notepad-list{width:140px;border-inline-end:1px solid #e6e6e6;background:#fafafa;overflow:auto;flex-shrink:0;}
+.notepad-list .nitem{padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid #eee;color:#333;}
+.notepad-list .nitem:hover, .notepad-list .nitem.active{background:var(--accent);color:#fff;}
+.notepad-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.notepad-main textarea{flex:1;border:none;resize:none;outline:none;padding:16px;font-family:var(--mono);font-size:14px;line-height:1.6;}
+
+.calc{display:flex;flex-direction:column;height:100%;background:#1c1c1e;}
+.calc .screen{color:#fff;text-align:end;font-size:34px;padding:22px 16px 10px;flex-shrink:0;min-height:44px;overflow:hidden;font-weight:300;}
+.calc .grid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#000;}
+.calc button{border:none;background:#333438;color:#fff;font-size:18px;cursor:pointer;}
+.calc button:hover{background:#454549;}
+.calc button.op{background:#ff9f0a;} .calc button.op:hover{background:#ffb84d;} .calc button.eq{background:#ff9f0a;}
+.calc button.gray{background:#a5a5a5;color:#000;} .calc button.gray:hover{background:#bcbcbc;}
+
+.term{background:#151516;color:#e8e8e8;font-family:var(--mono);font-size:13px;height:100%;padding:12px;overflow:auto;}
+.term .line{white-space:pre-wrap;word-break:break-word;line-height:1.55;}
+.term .prompt{color:#4cd137;}
+.term input{background:transparent;border:none;outline:none;color:#e8e8e8;font-family:inherit;font-size:inherit;width:70%;}
+
+.files{display:flex;height:100%;flex-direction:column;}
+.files .body{display:flex;flex:1;min-height:0;}
+.files .side{width:130px;background:#f5f5f6;border-inline-end:1px solid #e6e6e6;padding:8px 6px;flex-shrink:0;overflow:auto;}
+.files .side .item{padding:6px 8px;border-radius:7px;font-size:12.5px;cursor:pointer;display:flex;gap:7px;align-items:center;color:#333;}
+.files .side .item .gi{width:17px;height:17px;border-radius:5px;}
+.files .side .item:hover, .files .side .item.active{background:var(--accent);color:#fff;}
+.files .main{flex:1;padding:10px;display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;overflow:auto;}
+.files .f{width:76px;text-align:center;font-size:11px;cursor:pointer;padding:7px 3px;border-radius:7px;color:#333;position:relative;}
+.files .f:hover{background:#eef4ff;} .files .f.sel{background:#dbe9ff;}
+.files .f .gi{width:36px;height:36px;margin:0 auto 5px;}
+.files .f .sz{opacity:.55;font-size:10.5px;}
+.files .empty{padding:30px;text-align:center;color:#999;font-size:13px;width:100%;}
+.drop-hint{position:absolute;inset:0;background:rgba(10,132,255,.12);border:2px dashed var(--accent);border-radius:10px;display:none;align-items:center;justify-content:center;font-size:14px;color:var(--accent);font-weight:600;z-index:5;pointer-events:none;}
+.drop-hint.show{display:flex;}
+
+.settings{padding:16px;font-size:13px;color:#222;}
+.settings h3{margin:0 0 9px;font-size:13px;}
+.settings .themes, .settings .langgrid{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap;}
+.settings .theme-card{border:2px solid transparent;border-radius:10px;padding:8px;cursor:pointer;text-align:center;width:92px;background:#f6f6f7;font-size:12px;}
+.settings .theme-card.active{border-color:var(--accent);background:#eef4ff;}
+.settings .theme-card .prev{height:46px;border-radius:6px;margin-bottom:6px;}
+.settings .wallpapers{display:flex;gap:7px;flex-wrap:wrap;}
+.settings .wp{width:68px;height:42px;border-radius:7px;cursor:pointer;border:2px solid transparent;}
+.settings .wp.active{border-color:var(--accent);}
+.settings .lang-card{border:2px solid transparent;border-radius:9px;padding:7px 13px;cursor:pointer;background:#f6f6f7;font-size:12px;}
+.settings .lang-card.active{border-color:var(--accent);background:#eef4ff;}
+.settings .namebox{display:flex;gap:6px;margin-bottom:18px;}
+.settings .namebox input{border:1px solid #d6d6d6;border-radius:7px;padding:6px 9px;font-size:12.5px;flex:1;}
+
+.sysinfo{padding:14px;font-size:12.5px;}
+.sysinfo .note{background:#fff7e0;border:1px solid #ffe4a3;border-radius:9px;padding:8px 11px;margin-bottom:12px;color:#7a5a00;font-size:12px;}
+.sysinfo table{width:100%;border-collapse:collapse;}
+.sysinfo td{padding:7px 5px;border-bottom:1px solid #f0f0f0;}
+.sysinfo td:first-child{color:#666;width:45%;}
+.sysinfo td:last-child{font-weight:600;}
+
+.publisher{padding:12px;}
+.publisher .warn{background:#ffe9e9;border:1px solid #ffc2c2;color:#8a1f1f;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:12px;}
+.publisher .feed{display:flex;flex-direction:column;gap:8px;}
+.publisher .card{border:1px solid #eee;border-radius:10px;padding:10px 12px;background:#fafafa;}
+.publisher .card .head{display:flex;justify-content:space-between;font-size:12px;color:#777;margin-bottom:6px;}
+.publisher .card .title{font-weight:700;margin-bottom:4px;}
+.publisher .card .body{white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;max-height:120px;overflow:auto;color:#333;}
+.publisher .empty{text-align:center;color:#999;padding:30px;}
+
+.about{padding:22px;text-align:center;}
+.about .gi{width:52px;height:52px;margin:0 auto 10px;}
+.about h2{margin:0 0 4px;}
+.about p{color:#555;font-size:13px;margin:5px 0;}
+.about .foot{margin-top:16px;font-size:12px;opacity:.6;}
+</style>
+</head>
+<body data-theme="win">
+
+<div id="boot"><div class="logo">A</div><div class="barwrap"><div class="bar"></div></div><div class="txt" id="bootTxt">در حال بارگذاری AFDOS…</div></div>
+
+<div id="lock" class="wallpaper-1">
+  <div class="clk" id="lockClock">00:00</div>
+  <div class="dt" id="lockDate"></div>
+  <div class="langs" id="lockLangs"></div>
+  <div class="avatar" id="lockAvatar">A</div>
+  <div class="name" id="lockName">کاربر</div>
+  <div class="pwdrow"><input id="lockPwd" type="password"><button class="go" onclick="unlock()">→</button></div>
+  <div class="hint" id="lockHint"></div>
+</div>
+
+<div id="desktop" class="wallpaper-1">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div id="icons"></div>
+</div>
+
+<div id="winlayer"></div>
+
+<div id="ctxmenu">
+  <div class="item sub" id="ctxThemeLabel">Theme
+    <div class="submenu"><div class="item" onclick="setTheme('win')">Windows</div><div class="item" onclick="setTheme('mac')">macOS</div><div class="item" onclick="setTheme('linux')">Linux</div></div>
+  </div>
+  <div class="item sub" id="ctxWallLabel">Wallpaper<div class="submenu" id="ctxWallpapers"></div></div>
+  <hr>
+  <div class="item" id="ctxNewFile" onclick="quickNewFile()"></div>
+  <div class="item" id="ctxRefreshItem" onclick="ctxRefresh()"></div>
+  <hr>
+  <div class="item" id="ctxAboutItem" onclick="openApp('about')"></div>
+</div>
+
+<div class="chrome win-chrome taskbar">
+  <button class="taskicon start-btn" onclick="toggleLauncher()"></button>
+  <div id="winTaskIcons" style="display:flex;gap:4px;"></div>
+  <div class="systray"><span id="clockWin">00:00</span></div>
+</div>
+<div class="chrome mac-chrome topbar">
+  <span class="apple" onclick="toggleLauncher()"></span>
+  <span class="menuitem">AFDOS</span><span class="menuitem" style="font-weight:400;opacity:.7;">File</span><span class="menuitem" style="font-weight:400;opacity:.7;">Edit</span><span class="menuitem" style="font-weight:400;opacity:.7;">View</span>
+  <span class="spacer"></span><span class="sysicons"><span id="clockMac">00:00</span></span>
+</div>
+<div class="chrome mac-chrome dock" id="macDock"></div>
+<div class="chrome linux-chrome topbar">
+  <button class="activities" id="linuxActivitiesBtn" onclick="toggleLauncher()">Activities</button>
+  <span class="clockc" id="clockLinux">00:00</span><span class="sysicons"></span>
+</div>
+<div class="chrome linux-chrome dock" id="linuxDock"></div>
+
+<div id="launcher"><input class="search" id="launcherSearch" oninput="filterLauncher(this.value)"><div class="grid" id="launcherGrid"></div></div>
+
+<div id="toast"></div>
+<input type="file" id="hiddenFileInput" multiple style="display:none">
+
+<script>
+/* ================= ICONS ================= */
+const RAW = {
+  folder:'<svg viewBox="0 0 24 24"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4.4l1.7 1.8h8.9A1.5 1.5 0 0 1 21 8.3v9.2A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5v-11Z" fill="#fff"/></svg>',
+  files:'<svg viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h3.2l1.4 1.6H18a2 2 0 0 1 2 2V8H4V6Z" fill="#fff"/><path d="M3 9h18l-1.4 9.2A2 2 0 0 1 17.6 20H6.4a2 2 0 0 1-2-1.8L3 9Z" fill="#fff" opacity=".85"/></svg>',
+  notepad:'<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" fill="#fff"/><path d="M9 12h7M9 15.5h7M9 8.5h4" stroke="#f6a25a" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  calc:'<svg viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.2" fill="#fff"/><rect x="7.3" y="5" width="9.4" height="4" rx="1" fill="#333"/><circle cx="8.3" cy="12.3" r="1.15" fill="#ff9f0a"/><circle cx="12" cy="12.3" r="1.15" fill="#555"/><circle cx="15.7" cy="12.3" r="1.15" fill="#555"/><circle cx="8.3" cy="16" r="1.15" fill="#555"/><circle cx="12" cy="16" r="1.15" fill="#555"/><circle cx="15.7" cy="16" r="1.15" fill="#555"/></svg>',
+  terminal:'<svg viewBox="0 0 24 24"><path d="M6 9l4 3.2L6 15.4" stroke="#4cd137" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 15.4h6" stroke="#eee" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  settings:'<svg viewBox="0 0 24 24"><path d="M12 8.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 0 1 0-7.2Z" fill="#fff"/><path d="M12 2.5l1 2.4 2.5-.9 1 2.4 2.6.4-.4 2.6 2 1.7-2 1.7.4 2.6-2.6.4-1 2.4-2.5-.9-1 2.4-1-2.4-2.5.9-1-2.4-2.6-.4.4-2.6-2-1.7 2-1.7-.4-2.6 2.6-.4 1-2.4 2.5.9 1-2.4Z" fill="none" stroke="#fff" stroke-width="1.1" opacity=".55"/></svg>',
+  about:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="#fff"/><rect x="10.9" y="10.2" width="2.2" height="7" rx="1" fill="#a18cd1"/><circle cx="12" cy="7.3" r="1.3" fill="#a18cd1"/></svg>',
+  trash:'<svg viewBox="0 0 24 24"><path d="M5 7h14l-1.2 12.2A2 2 0 0 1 15.8 21H8.2a2 2 0 0 1-2-1.8L5 7Z" fill="#fff"/><path d="M9 4.5h6l1 2H8l1-2Z" fill="#fff"/><path d="M9.5 10.5v6M12 10.5v6M14.5 10.5v6" stroke="#8e9eab" stroke-width="1.1" stroke-linecap="round"/></svg>',
+  image:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#fff"/><circle cx="8.3" cy="9.3" r="1.8" fill="#f7971e"/><path d="M3.5 17l5.5-5.5 3.5 3.5 2.5-2.5 5 5" stroke="#c23f0a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  sheet:'<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.6" fill="#fff"/><path d="M4 9h16M4 14h16M9.3 3v18M14.7 3v18" stroke="#34c759" stroke-width="1.1"/></svg>',
+  doc:'<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" fill="#fff"/><path d="M8.5 11h7M8.5 14.3h7M8.5 17.6h4.5" stroke="#4facfe" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  archive:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="1.6" fill="#fff"/><rect x="10.4" y="5" width="3.2" height="15" fill="#8d7b68"/><rect x="10.4" y="8.5" width="3.2" height="1.6" fill="#4e3f34"/><rect x="10.4" y="12.5" width="3.2" height="1.6" fill="#4e3f34"/></svg>',
+  exe:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="#fff"/><path d="M9 8.5v7l6-3.5-6-3.5Z" fill="#66788f"/></svg>',
+  txt:'<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" fill="#fff"/><path d="M8.5 11h7M8.5 14.3h7M8.5 17.6h4" stroke="#a8adb4" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  winlogo:'<svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>',
+  applelogo:'<svg viewBox="0 0 24 24" fill="#111"><path d="M16.4 3.2c.1 1-.3 2-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1 .4-2 1-2.7.8-.9 2-1.4 2.8-1.4ZM19.5 17c-.5 1.1-.7 1.6-1.3 2.5-.8 1.3-2 2.9-3.4 2.9-1.2 0-1.6-.8-3.2-.8-1.7 0-2.1.8-3.3.8-1.4 0-2.5-1.5-3.3-2.7-2.3-3.3-2.5-7.1-1.1-9.2.9-1.5 2.5-2.4 4-2.4 1.5 0 2.5.9 3.7.9 1.2 0 1.9-.9 3.7-.9 1.2 0 2.6.7 3.5 1.9-3.1 1.7-2.6 6.1.7 7Z"/></svg>',
+  sysinfo:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.6" fill="#fff"/><path d="M6 19h12M12 16v3" stroke="#0072ff" stroke-width="1.6" stroke-linecap="round"/><path d="M6 8h5M6 11h8" stroke="#0072ff" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  publisher:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2" fill="#fff"/><path d="M12 3.5c2 2.4 2 14.6 0 17M12 3.5c-2 2.4-2 14.6 0 17M3.3 9.5h17.4M3.3 14.5h17.4" stroke="#f77062" stroke-width="1.1" fill="none"/></svg>',
+};
+function svgIcon(name,cls){ return `<div class="gi ${cls||''} bg-${name}">${RAW[name]||RAW.doc}</div>`; }
+function rawIcon(name){ return RAW[name]||''; }
+
+/* ================= I18N ================= */
+const LANGS = { fa:{dir:'rtl',flag:'FA',label:'فارسی'}, en:{dir:'ltr',flag:'EN',label:'English'}, tr:{dir:'ltr',flag:'TR',label:'Türkçe'}, ar:{dir:'rtl',flag:'AR',label:'العربية'} };
+const I18N = {
+  fa:{ apps:{files:'مدیریت فایل',notepad:'یادداشت',calc:'ماشین‌حساب',terminal:'ترمینال',settings:'تنظیمات',about:'درباره',sysinfo:'اطلاعات سیستم',publisher:'AFDOS Publisher'},
+    boot:'در حال بارگذاری AFDOS…', lockUser:'کاربر', lockHint:'اینتر بزنید یا روی فلش کلیک کنید', lockPwd:'گذرواژه (هرچیزی)',
+    launcherSearch:'جستجوی برنامه‌ها…', activities:'برنامه‌ها', trash:'سطل زباله', trashEmpty:'سطل زباله خالی است',
+    ctxTheme:'تغییر تم', ctxWall:'تصویر زمینه', ctxNew:'فایل متنی جدید', ctxRefresh:'بازخوانی', ctxAbout:'درباره AFDOS',
+    themeNames:{win:'ویندوز',mac:'مک اواس',linux:'لینوکس'}, themeChanged:'تم تغییر کرد', desktopRefreshed:'دسکتاپ بازخوانی شد',
+    fileCreatedDesktop:'فایل روی دسکتاپ ساخته شد', noSelection:'یک فایل را انتخاب کنید', noName:'نامی وارد نشد', renamed:'نام تغییر کرد', deleted:'حذف شد',
+    saved:'ذخیره شد', savedTo:'در Documents ذخیره شد: ', noteDeleted:'سند حذف شد', newDocHint:'سند جدید — روی «ذخیره» بزنید',
+    folders:{Desktop:'دسکتاپ',Documents:'اسناد',Downloads:'دانلودها',Pictures:'تصاویر'},
+    filesNew:'فایل متنی جدید', filesUpload:'آپلود فایل', filesRename:'تغییر نام', filesDelete:'حذف', filesDownload:'دانلود', filesEmpty:'این پوشه خالی است', filesConfirm:'تایید', filesNamePh:'نام فایل...', dropHere:'فایل را این‌جا رها کنید',
+    uploaded:' فایل آپلود شد', notOpenable:'این نوع فایل در این محیط قابل بازکردن نیست، اما می‌توانید دانلودش کنید',
+    npNew:'جدید', npSave:'ذخیره', npDelete:'حذف', npPh:'این‌جا بنویسید…',
+    setAppearance:'ظاهر سیستم', setWallpaper:'تصویر زمینه', setLanguage:'زبان سیستم', setDisplayName:'نام نمایشی شما (برای انتشار عمومی)', setSave:'ذخیره نام',
+    sysTitle:'اطلاعات سیستم', sysNote:'این اطلاعات فقط همان چیزی است که مرورگر شما به‌طور استاندارد و با رعایت حریم خصوصی در اختیار می‌گذارد. این صفحه به هارد دیسک، فلش‌مموری یا سخت‌افزار واقعی دستگاه شما دسترسی مستقیم ندارد و نمی‌تواند آن‌ها را فهرست کند.',
+    sysPlatform:'پلتفرم', sysCores:'هسته‌های پردازنده (تقریبی)', sysMem:'حافظه تخمینی (RAM)', sysScreen:'رزولوشن صفحه', sysLang:'زبان مرورگر', sysTZ:'منطقه زمانی', sysOnline:'وضعیت اتصال', sysNet:'نوع شبکه', sysStorage:'فضای ذخیره‌سازی مرورگر (تخمینی)', sysCookie:'کوکی فعال',
+    pubTitle:'AFDOS Publisher', pubWarn:'هر چیزی که اینجا منتشر کنید برای همهٔ کاربران این برنامه قابل مشاهده خواهد بود.', pubBy:'ناشر: ', pubEmpty:'هنوز چیزی منتشر نشده است', pubCopy:'کپی به اسناد من',
+    aboutDesc1:'یک محیط دسکتاپ کاملاً تعاملی در مرورگر — با ظاهر ویندوز، مک اواس و لینوکس.', aboutDesc2:'ساخته‌شده با HTML، CSS و JavaScript. این یک سیستم‌عامل واقعیِ بوت‌شدنی نیست؛ یک شبیه‌سازیِ کاربردی است که از هر مرورگری در دسترس است.',
+    publishBtn:'انتشار عمومی', mustBeText:'فقط فایل‌های متنی قابل انتشار هستند', published:'با موفقیت منتشر شد',
+  },
+  en:{ apps:{files:'File Manager',notepad:'Notepad',calc:'Calculator',terminal:'Terminal',settings:'Settings',about:'About',sysinfo:'System Info',publisher:'AFDOS Publisher'},
+    boot:'Loading AFDOS…', lockUser:'User', lockHint:'Press Enter or click the arrow', lockPwd:'Password (anything)',
+    launcherSearch:'Search apps…', activities:'Activities', trash:'Trash', trashEmpty:'Trash is empty',
+    ctxTheme:'Switch theme', ctxWall:'Wallpaper', ctxNew:'New text file', ctxRefresh:'Refresh', ctxAbout:'About AFDOS',
+    themeNames:{win:'Windows',mac:'macOS',linux:'Linux'}, themeChanged:'Theme changed', desktopRefreshed:'Desktop refreshed',
+    fileCreatedDesktop:'File created on Desktop', noSelection:'Select a file first', noName:'No name entered', renamed:'Renamed', deleted:'Deleted',
+    saved:'Saved', savedTo:'Saved to Documents: ', noteDeleted:'Note deleted', newDocHint:'New document — click Save',
+    folders:{Desktop:'Desktop',Documents:'Documents',Downloads:'Downloads',Pictures:'Pictures'},
+    filesNew:'New text file', filesUpload:'Upload file', filesRename:'Rename', filesDelete:'Delete', filesDownload:'Download', filesEmpty:'This folder is empty', filesConfirm:'Confirm', filesNamePh:'File name...', dropHere:'Drop files here',
+    uploaded:' file(s) uploaded', notOpenable:"This file type can't be opened here, but you can download it",
+    npNew:'New', npSave:'Save', npDelete:'Delete', npPh:'Start typing…',
+    setAppearance:'System appearance', setWallpaper:'Wallpaper', setLanguage:'System language', setDisplayName:'Your display name (for public sharing)', setSave:'Save name',
+    sysTitle:'System Info', sysNote:"This is only what your browser reports through standard, privacy-respecting APIs. This page cannot access or list your real hard drives, USB drives, or hardware directly.",
+    sysPlatform:'Platform', sysCores:'CPU cores (approx.)', sysMem:'Estimated RAM', sysScreen:'Screen resolution', sysLang:'Browser language', sysTZ:'Timezone', sysOnline:'Connection status', sysNet:'Network type', sysStorage:'Browser storage (estimated)', sysCookie:'Cookies enabled',
+    pubTitle:'AFDOS Publisher', pubWarn:'Anything you publish here will be visible to every user of this app.', pubBy:'By: ', pubEmpty:'Nothing published yet', pubCopy:'Copy to my Documents',
+    aboutDesc1:'A fully interactive browser desktop — with Windows, macOS and Linux looks.', aboutDesc2:'Built with HTML, CSS and JavaScript. Not a real bootable OS — a working simulation accessible from any browser.',
+    publishBtn:'Publish publicly', mustBeText:'Only text files can be published', published:'Published successfully',
+  },
+  tr:{ apps:{files:'Dosya Yöneticisi',notepad:'Not Defteri',calc:'Hesap Makinesi',terminal:'Terminal',settings:'Ayarlar',about:'Hakkında',sysinfo:'Sistem Bilgisi',publisher:'AFDOS Publisher'},
+    boot:'AFDOS yükleniyor…', lockUser:'Kullanıcı', lockHint:'Enter’a basın veya oka tıklayın', lockPwd:'Şifre (herhangi bir şey)',
+    launcherSearch:'Uygulama ara…', activities:'Etkinlikler', trash:'Çöp Kutusu', trashEmpty:'Çöp kutusu boş',
+    ctxTheme:'Temayı değiştir', ctxWall:'Duvar kağıdı', ctxNew:'Yeni metin dosyası', ctxRefresh:'Yenile', ctxAbout:'AFDOS Hakkında',
+    themeNames:{win:'Windows',mac:'macOS',linux:'Linux'}, themeChanged:'Tema değişti', desktopRefreshed:'Masaüstü yenilendi',
+    fileCreatedDesktop:'Masaüstünde dosya oluşturuldu', noSelection:'Önce bir dosya seçin', noName:'İsim girilmedi', renamed:'Yeniden adlandırıldı', deleted:'Silindi',
+    saved:'Kaydedildi', savedTo:'Belgeler’e kaydedildi: ', noteDeleted:'Not silindi', newDocHint:'Yeni belge — Kaydet’e basın',
+    folders:{Desktop:'Masaüstü',Documents:'Belgeler',Downloads:'İndirilenler',Pictures:'Resimler'},
+    filesNew:'Yeni metin dosyası', filesUpload:'Dosya yükle', filesRename:'Yeniden adlandır', filesDelete:'Sil', filesDownload:'İndir', filesEmpty:'Bu klasör boş', filesConfirm:'Onayla', filesNamePh:'Dosya adı...', dropHere:'Dosyaları buraya bırakın',
+    uploaded:' dosya yüklendi', notOpenable:'Bu dosya türü burada açılamaz, ancak indirebilirsiniz',
+    npNew:'Yeni', npSave:'Kaydet', npDelete:'Sil', npPh:'Buraya yazın…',
+    setAppearance:'Sistem görünümü', setWallpaper:'Duvar kağıdı', setLanguage:'Sistem dili', setDisplayName:'Görünen adınız (herkese açık paylaşım için)', setSave:'Adı kaydet',
+    sysTitle:'Sistem Bilgisi', sysNote:'Bu bilgiler yalnızca tarayıcınızın standart ve gizliliğe saygılı API’ler aracılığıyla sağladığı verilerdir. Bu sayfa gerçek disklerinize, USB belleklerinize veya donanımınıza doğrudan erişemez.',
+    sysPlatform:'Platform', sysCores:'İşlemci çekirdeği (yaklaşık)', sysMem:'Tahmini RAM', sysScreen:'Ekran çözünürlüğü', sysLang:'Tarayıcı dili', sysTZ:'Saat dilimi', sysOnline:'Bağlantı durumu', sysNet:'Ağ türü', sysStorage:'Tarayıcı depolama alanı (tahmini)', sysCookie:'Çerezler etkin',
+    pubTitle:'AFDOS Publisher', pubWarn:'Burada yayınladığınız her şey bu uygulamanın tüm kullanıcıları tarafından görülebilir.', pubBy:'Yayınlayan: ', pubEmpty:'Henüz bir şey yayınlanmadı', pubCopy:'Belgelerime kopyala',
+    aboutDesc1:'Tarayıcıda tam etkileşimli bir masaüstü ortamı — Windows, macOS ve Linux görünümleriyle.', aboutDesc2:'HTML, CSS ve JavaScript ile yapıldı. Gerçek önyüklenebilir bir işletim sistemi değildir; her tarayıcıdan erişilebilen çalışan bir simülasyondur.',
+    publishBtn:'Herkese açık yayınla', mustBeText:'Yalnızca metin dosyaları yayınlanabilir', published:'Başarıyla yayınlandı',
+  },
+  ar:{ apps:{files:'مدير الملفات',notepad:'المفكرة',calc:'الآلة الحاسبة',terminal:'الطرفية',settings:'الإعدادات',about:'حول',sysinfo:'معلومات النظام',publisher:'AFDOS Publisher'},
+    boot:'جارٍ تحميل AFDOS…', lockUser:'المستخدم', lockHint:'اضغط Enter أو انقر على السهم', lockPwd:'كلمة المرور (أي شيء)',
+    launcherSearch:'البحث عن تطبيقات…', activities:'الأنشطة', trash:'سلة المهملات', trashEmpty:'سلة المهملات فارغة',
+    ctxTheme:'تغيير المظهر', ctxWall:'خلفية الشاشة', ctxNew:'ملف نصي جديد', ctxRefresh:'تحديث', ctxAbout:'حول AFDOS',
+    themeNames:{win:'ويندوز',mac:'ماك أواس',linux:'لينكس'}, themeChanged:'تم تغيير المظهر', desktopRefreshed:'تم تحديث سطح المكتب',
+    fileCreatedDesktop:'تم إنشاء الملف على سطح المكتب', noSelection:'اختر ملفًا أولاً', noName:'لم يتم إدخال اسم', renamed:'تمت إعادة التسمية', deleted:'تم الحذف',
+    saved:'تم الحفظ', savedTo:'تم الحفظ في المستندات: ', noteDeleted:'تم حذف الملاحظة', newDocHint:'مستند جديد — اضغط حفظ',
+    folders:{Desktop:'سطح المكتب',Documents:'المستندات',Downloads:'التنزيلات',Pictures:'الصور'},
+    filesNew:'ملف نصي جديد', filesUpload:'رفع ملف', filesRename:'إعادة تسمية', filesDelete:'حذف', filesDownload:'تنزيل', filesEmpty:'هذا المجلد فارغ', filesConfirm:'تأكيد', filesNamePh:'اسم الملف...', dropHere:'أفلت الملفات هنا',
+    uploaded:' تم رفع ملف', notOpenable:'لا يمكن فتح هذا النوع من الملفات هنا، لكن يمكنك تنزيله',
+    npNew:'جديد', npSave:'حفظ', npDelete:'حذف', npPh:'اكتب هنا…',
+    setAppearance:'مظهر النظام', setWallpaper:'خلفية الشاشة', setLanguage:'لغة النظام', setDisplayName:'اسمك الظاهر (للمشاركة العامة)', setSave:'حفظ الاسم',
+    sysTitle:'معلومات النظام', sysNote:'هذه المعلومات هي فقط ما يوفره متصفحك عبر واجهات قياسية تحترم الخصوصية. لا يمكن لهذه الصفحة الوصول إلى أقراصك الصلبة أو ذواكر USB أو العتاد الحقيقي مباشرة.',
+    sysPlatform:'المنصة', sysCores:'أنوية المعالج (تقريبي)', sysMem:'الذاكرة العشوائية التقديرية', sysScreen:'دقة الشاشة', sysLang:'لغة المتصفح', sysTZ:'المنطقة الزمنية', sysOnline:'حالة الاتصال', sysNet:'نوع الشبكة', sysStorage:'مساحة تخزين المتصفح (تقديرية)', sysCookie:'ملفات تعريف الارتباط مفعّلة',
+    pubTitle:'AFDOS Publisher', pubWarn:'كل ما تنشره هنا سيكون مرئيًا لجميع مستخدمي هذا التطبيق.', pubBy:'الناشر: ', pubEmpty:'لم يُنشر شيء بعد', pubCopy:'نسخ إلى مستنداتي',
+    aboutDesc1:'بيئة سطح مكتب تفاعلية بالكامل داخل المتصفح — بمظهر ويندوز وماك أواس ولينكس.', aboutDesc2:'تم إنشاؤه باستخدام HTML وCSS وJavaScript. هذا ليس نظام تشغيل حقيقيًا قابلاً للإقلاع، بل محاكاة عملية يمكن الوصول إليها من أي متصفح.',
+    publishBtn:'نشر للعامة', mustBeText:'يمكن نشر الملفات النصية فقط', published:'تم النشر بنجاح',
+  },
+};
+function t(key){ const parts=key.split('.'); let v=I18N[state.lang]; for(const p of parts) v=v&&v[p]; return v!==undefined? v : key; }
+
+/* ================= APP + FS REGISTRY ================= */
+const APPS = ['files','notepad','calc','terminal','settings','sysinfo','publisher','about'];
+const APP_ICON = {files:'files',notepad:'notepad',calc:'calc',terminal:'terminal',settings:'settings',sysinfo:'sysinfo',publisher:'publisher',about:'about'};
+const WALLPAPERS = ['wallpaper-1','wallpaper-2','wallpaper-3','wallpaper-4','wallpaper-5'];
+const FOLDERS = ['Desktop','Documents','Downloads','Pictures'];
+function appName(id){ return t('apps.'+id); }
+
+const Store = {
+  mem:{},
+  async get(key){ try{ if(window.storage){ const r=await window.storage.get(key); return r?r.value:null; } }catch(e){} return this.mem.hasOwnProperty(key)?this.mem[key]:null; },
+  async set(key,value){ this.mem[key]=value; try{ if(window.storage){ await window.storage.set(key,value); } }catch(e){} },
+  async getShared(key){ try{ if(window.storage){ const r=await window.storage.get(key,true); return r?r.value:null; } }catch(e){} return null; },
+  async setShared(key,value){ try{ if(window.storage){ await window.storage.set(key,value,true); } }catch(e){} },
+  async listShared(prefix){ try{ if(window.storage){ const r=await window.storage.list(prefix,true); return r?r.keys:[]; } }catch(e){} return []; },
+};
+
+let state = { theme:'win', lang:'fa', wallpaper:'wallpaper-1', displayName:'کاربر', windows:[], z:100, winCount:0 };
+let FS = null;
+const blobStore = {}; // session-only binary uploads: id -> {url, file}
+let uidc = 1;
+function uid(){ return 'f'+(uidc++)+'_'+Date.now().toString(36); }
+
+function seedFS(){ return {
+  Desktop:[ {id:uid(), name:'welcome.txt', type:'txt', content:'Welcome to AFDOS!\nThis is a real text file — edit, save, or delete it.'} ],
+  Documents:[ {id:uid(), name:'report.doc', type:'doc', content:''}, {id:uid(), name:'budget.sheet', type:'sheet', content:''}, {id:uid(), name:'notes.txt', type:'txt', content:'My important notes...'} ],
+  Downloads:[ {id:uid(), name:'setup.exe', type:'exe', content:''}, {id:uid(), name:'archive.zip', type:'archive', content:''} ],
+  Pictures:[ {id:uid(), name:'holiday.jpg', type:'image', content:''}, {id:uid(), name:'profile.png', type:'image', content:''} ],
+};}
+function extToType(name){
+  const ext=(name.split('.').pop()||'').toLowerCase();
+  if(['txt','md','csv','log','json','js','css','html'].includes(ext)) return 'txt';
+  if(['jpg','jpeg','png','gif','webp','svg'].includes(ext)) return 'image';
+  if(['xlsx','xls','sheet'].includes(ext)) return 'sheet';
+  if(['doc','docx'].includes(ext)) return 'doc';
+  if(['zip','rar','7z'].includes(ext)) return 'archive';
+  if(['exe','msi','app'].includes(ext)) return 'exe';
+  return 'txt';
+}
+function fileIconName(type){ return ({txt:'txt',doc:'doc',sheet:'sheet',image:'image',archive:'archive',exe:'exe'})[type] || 'txt'; }
+function fileToDataURL(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=()=>reject(r.error); r.readAsDataURL(file); }); }
+async function safeObjectURL(file){
+  try{ if(typeof URL!=='undefined' && URL.createObjectURL) return URL.createObjectURL(file); }catch(e){}
+  try{ return await fileToDataURL(file); }catch(e){ return null; }
+}
+function safeRevoke(url){ try{ if(url && url.startsWith('blob:') && URL.revokeObjectURL) URL.revokeObjectURL(url); }catch(e){} }
+function fmtSize(bytes){ if(!bytes && bytes!==0) return ''; if(bytes<1024) return bytes+' B'; if(bytes<1024*1024) return (bytes/1024).toFixed(1)+' KB'; return (bytes/1024/1024).toFixed(1)+' MB'; }
+
+async function persistFS(){ await Store.set('fs', JSON.stringify(FS)); }
+async function persistPrefs(){ await Store.set('prefs', JSON.stringify({theme:state.theme, wallpaper:state.wallpaper, lang:state.lang, displayName:state.displayName})); }
+
+/* ================= BOOT ================= */
+window.addEventListener('load', async ()=>{
+  const prefsRaw = await Store.get('prefs');
+  if(prefsRaw){ try{ const p=JSON.parse(prefsRaw); state.theme=p.theme||'win'; state.wallpaper=p.wallpaper||'wallpaper-1'; state.lang=p.lang||'fa'; state.displayName=p.displayName||'کاربر'; }catch(e){} }
+  const fsRaw = await Store.get('fs');
+  if(fsRaw){ try{ FS=JSON.parse(fsRaw); }catch(e){ FS=seedFS(); } } else { FS=seedFS(); }
+
+  buildLockLangs();
+  applyLang();
+  applyTheme();
+  applyWallpaper();
+  buildDesktopIcons(); buildLauncher(); buildDocks(); buildCtxWallpapers(); buildStaticLabels();
+  tickClock(); setInterval(tickClock,1000);
+  setupDnD();
+
+  setTimeout(()=>{
+    const bootEl=document.getElementById('boot'); if(bootEl){ bootEl.classList.add('hide'); setTimeout(()=>bootEl.remove(),750); }
+    const pwdEl=document.getElementById('lockPwd'); if(pwdEl) pwdEl.focus();
+  }, 1900);
+});
+let unlocked=false;
+function unlock(){ if(unlocked) return; unlocked=true; const lockEl=document.getElementById('lock'); if(!lockEl) return; lockEl.classList.add('hide'); setTimeout(()=>{ lockEl.remove(); openApp('about'); },550); }
+document.getElementById('lockPwd').addEventListener('keydown', e=>{ if(e.key==='Enter') unlock(); });
+
+function tickClock(){
+  const d=new Date(); const hh=String(d.getHours()).padStart(2,'0'), mm=String(d.getMinutes()).padStart(2,'0'); const time=`${hh}:${mm}`;
+  const locale = {fa:'fa-IR',en:'en-US',tr:'tr-TR',ar:'ar-SA'}[state.lang];
+  const shortDate=d.toLocaleDateString(locale,{month:'short',day:'numeric'});
+  const longDate=d.toLocaleDateString(locale,{weekday:'long',month:'long',day:'numeric'});
+  const w=document.getElementById('clockWin'); if(w) w.textContent=`${shortDate}  ${time}`;
+  const m=document.getElementById('clockMac'); if(m) m.textContent=time;
+  const l=document.getElementById('clockLinux'); if(l) l.textContent=`${shortDate}  ${time}`;
+  const lc=document.getElementById('lockClock'); if(lc) lc.textContent=time;
+  const ld=document.getElementById('lockDate'); if(ld) ld.textContent=longDate;
+}
+
+/* ================= LANG / THEME / WALLPAPER ================= */
+function buildLockLangs(){
+  const box=document.getElementById('lockLangs'); box.innerHTML='';
+  Object.keys(LANGS).forEach(code=>{
+    const b=document.createElement('button'); b.textContent=LANGS[code].flag; b.className= state.lang===code?'active':'';
+    b.onclick=()=>{ state.lang=code; applyLang(); buildLockLangs(); persistPrefs(); };
+    box.appendChild(b);
+  });
+}
+function applyLang(){
+  document.documentElement.lang = state.lang;
+  document.documentElement.dir = LANGS[state.lang].dir;
+  const bootTxt=document.getElementById('bootTxt'); if(bootTxt) bootTxt.textContent=t('boot');
+  const lockName=document.getElementById('lockName'); if(lockName) lockName.textContent=state.displayName || t('lockUser');
+  const lockHint=document.getElementById('lockHint'); if(lockHint) lockHint.textContent=t('lockHint');
+  const lockPwd=document.getElementById('lockPwd'); if(lockPwd) lockPwd.placeholder=t('lockPwd');
+  document.getElementById('launcherSearch').placeholder=t('launcherSearch');
+  document.getElementById('linuxActivitiesBtn').textContent=t('activities');
+  buildStaticLabels();
+  buildDesktopIcons(); buildLauncher(); buildDocks(); refreshTaskIcons();
+  state.windows.forEach(w=>{ const txt=w.el.querySelector('.ttl .txt'); if(txt) txt.textContent=appName(w.appId); });
+}
+function buildStaticLabels(){
+  document.getElementById('ctxThemeLabel').childNodes[0].textContent = t('ctxTheme');
+  document.getElementById('ctxWallLabel').childNodes[0].textContent = t('ctxWall');
+  document.getElementById('ctxNewFile').textContent = t('ctxNew');
+  document.getElementById('ctxRefreshItem').textContent = t('ctxRefresh');
+  document.getElementById('ctxAboutItem').textContent = t('ctxAbout');
+  const subs = document.querySelectorAll('#ctxThemeLabel .submenu .item');
+  const keys=['win','mac','linux']; subs.forEach((el,i)=>el.textContent=t('themeNames.'+keys[i]));
+}
+function applyTheme(){ document.body.setAttribute('data-theme', state.theme); }
+function setTheme(theme){
+  state.theme=theme; applyTheme();
+  buildDesktopIcons(); buildLauncher(); buildDocks(); refreshTaskIcons();
+  state.windows.forEach(w=>{ const txt=w.el.querySelector('.ttl .txt'); if(txt) txt.textContent=appName(w.appId); });
+  toast(t('themeChanged')); persistPrefs(); closeCtx();
+}
+function applyWallpaper(){
+  const lockEl=document.getElementById('lock');
+  WALLPAPERS.forEach(c=>{ document.getElementById('desktop').classList.remove(c); if(lockEl) lockEl.classList.remove(c); });
+  document.getElementById('desktop').classList.add(state.wallpaper);
+  if(lockEl) lockEl.classList.add(state.wallpaper);
+}
+function setWallpaper(w){ state.wallpaper=w; applyWallpaper(); persistPrefs(); closeCtx(); }
+
+/* ================= DESKTOP ICONS ================= */
+function buildDesktopIcons(){
+  const box=document.getElementById('icons'); box.innerHTML='';
+  APPS.forEach(id=>{
+    const d=document.createElement('div'); d.className='dicon';
+    d.ondblclick=()=>openApp(id);
+    d.onclick=(e)=>{ document.querySelectorAll('.dicon').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); e.stopPropagation(); };
+    d.innerHTML = svgIcon(APP_ICON[id]) + `<div class="lbl">${appName(id)}</div>`;
+    box.appendChild(d);
+  });
+  (FS.Desktop||[]).forEach(f=>{
+    const d=document.createElement('div'); d.className='dicon';
+    d.onclick=(e)=>{ document.querySelectorAll('.dicon').forEach(x=>x.classList.remove('sel')); d.classList.add('sel'); e.stopPropagation(); };
+    d.ondblclick=()=>openFileEntry('Desktop', f.id);
+    d.innerHTML = svgIcon(fileIconName(f.type)) + `<div class="lbl">${f.name}</div>`;
+    box.appendChild(d);
+  });
+  const tr=document.createElement('div'); tr.className='dicon';
+  tr.innerHTML = svgIcon('trash') + `<div class="lbl">${t('trash')}</div>`;
+  tr.onclick=(e)=>e.stopPropagation(); tr.ondblclick=()=>toast(t('trashEmpty'));
+  box.appendChild(tr);
+}
+
+/* ================= LAUNCHER ================= */
+function buildLauncher(){
+  const grid=document.getElementById('launcherGrid'); grid.innerHTML='';
+  APPS.forEach(id=>{
+    const el=document.createElement('div'); el.className='app';
+    el.onclick=()=>{ openApp(id); toggleLauncher(true); };
+    el.innerHTML = svgIcon(APP_ICON[id]) + `<div class="lbl">${appName(id)}</div>`;
+    grid.appendChild(el);
+  });
+}
+function filterLauncher(q){ q=q.trim().toLowerCase(); document.querySelectorAll('#launcherGrid .app').forEach(el=>{ el.style.display = el.querySelector('.lbl').textContent.toLowerCase().includes(q)?'flex':'none'; }); }
+function toggleLauncher(forceClose){
+  const l=document.getElementById('launcher');
+  if(forceClose){ l.classList.remove('show'); return; }
+  const willShow=!l.classList.contains('show'); l.classList.toggle('show');
+  if(willShow){
+    if(state.theme==='win'){ l.style.bottom='calc(var(--taskbar-h) + 12px)'; l.style.left='50%'; l.style.top='auto'; l.style.transform='translateX(-50%)'; l.style.width='440px'; }
+    else if(state.theme==='mac'){ l.style.top='50%'; l.style.left='50%'; l.style.bottom='auto'; l.style.transform='translate(-50%,-50%)'; l.style.width='480px'; }
+    else { l.style.top='64px'; l.style.left='50%'; l.style.bottom='auto'; l.style.transform='translateX(-50%)'; l.style.width='480px'; }
+    document.querySelectorAll('#launcherGrid .app').forEach(e=>e.style.display='flex');
+  }
+}
+document.addEventListener('click',(e)=>{ const l=document.getElementById('launcher'); if(l.classList.contains('show') && !l.contains(e.target) && !e.target.closest('.start-btn') && !e.target.closest('.apple') && !e.target.closest('.activities')) l.classList.remove('show'); });
+
+/* ================= DOCKS ================= */
+function buildDocks(){
+  const mac=document.getElementById('macDock'), lin=document.getElementById('linuxDock');
+  mac.innerHTML=''; lin.innerHTML='';
+  APPS.forEach(id=>{
+    const b1=document.createElement('button'); b1.className='dockicon'; b1.dataset.app=id; b1.title=appName(id); b1.innerHTML=svgIcon(APP_ICON[id]); b1.onclick=()=>openApp(id); mac.appendChild(b1);
+    const b2=document.createElement('button'); b2.className='dockicon'; b2.dataset.app=id; b2.title=appName(id); b2.innerHTML=svgIcon(APP_ICON[id]); b2.onclick=()=>openApp(id); lin.appendChild(b2);
+  });
+  document.querySelector('.mac-chrome.topbar .apple').innerHTML = rawIcon('applelogo');
+  document.querySelector('.win-chrome .start-btn').innerHTML = rawIcon('winlogo');
+  refreshTaskIcons();
+}
+function refreshTaskIcons(){
+  const running=new Set(state.windows.map(w=>w.appId));
+  document.querySelectorAll('.dockicon').forEach(b=>b.classList.toggle('running', running.has(b.dataset.app)));
+  const box=document.getElementById('winTaskIcons'); box.innerHTML='';
+  state.windows.forEach(w=>{
+    const b=document.createElement('button'); b.className='taskicon running'; b.dataset.app=w.appId; b.title=appName(w.appId); b.innerHTML=svgIcon(APP_ICON[w.appId]);
+    b.onclick=()=>{ if(w.minimized){ restoreWin(w.id); } else { focusWin(w.id); minimizeAnimated(w.id); } };
+    box.appendChild(b);
+  });
+}
+function getDockTargetRect(appId){
+  let el=document.querySelector(`[data-theme="${state.theme}"] .chrome .taskicon[data-app="${appId}"], [data-theme="${state.theme}"] .chrome .dockicon[data-app="${appId}"]`);
+  if(el){ const r=el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+  return {x:window.innerWidth/2, y:window.innerHeight};
+}
+
+/* ================= CONTEXT MENU ================= */
+document.getElementById('desktop').addEventListener('contextmenu',(e)=>{
+  e.preventDefault(); const m=document.getElementById('ctxmenu'); m.style.display='block';
+  m.style.left=Math.min(e.clientX, window.innerWidth-230)+'px'; m.style.top=Math.min(e.clientY, window.innerHeight-280)+'px';
+});
+document.addEventListener('click',(e)=>{ if(!e.target.closest('#ctxmenu')) closeCtx(); });
+function closeCtx(){ document.getElementById('ctxmenu').style.display='none'; }
+function ctxRefresh(){ buildDesktopIcons(); toast(t('desktopRefreshed')); closeCtx(); }
+function buildCtxWallpapers(){
+  const box=document.getElementById('ctxWallpapers'); box.innerHTML='';
+  WALLPAPERS.forEach((w,i)=>{ const d=document.createElement('div'); d.className='item'; d.textContent='Wallpaper '+(i+1); d.onclick=()=>setWallpaper(w); box.appendChild(d); });
+}
+async function quickNewFile(){
+  FS.Desktop.push({id:uid(), name:'new-note.txt', type:'txt', content:''});
+  await persistFS(); buildDesktopIcons(); closeCtx(); toast(t('fileCreatedDesktop'));
+}
+
+let toastTimer;
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2400); }
+
+/* ================= WINDOW MANAGER ================= */
+function openApp(appId, opts){
+  state.winCount++; const id='w'+state.winCount;
+  const el=document.createElement('div'); el.className='win';
+  const sz=defaultSize(appId);
+  el.style.width=sz.w+'px'; el.style.height=sz.h+'px';
+  el.style.left=(70+(state.winCount%6)*32)+'px'; el.style.top=(70+(state.winCount%6)*28)+'px';
+  el.style.zIndex=++state.z;
+  el.innerHTML = `<div class="titlebar"><div class="btns"><button class="close">✕</button><button class="min">–</button><button class="max">▢</button></div><div class="ttl">${svgIcon(APP_ICON[appId])}<span class="txt">${appName(appId)}</span></div></div><div class="content"></div><div class="resize"></div>`;
+  document.getElementById('winlayer').appendChild(el);
+
+  const winObj={id, appId, el, minimized:false, maximized:false, prevRect:null, data:opts||{}};
+  state.windows.push(winObj);
+  el.querySelector('.content').innerHTML = renderApp(appId, id);
+  initAppLogic(appId, id, el, winObj);
+
+  el.addEventListener('mousedown', ()=>focusWin(id));
+  el.querySelector('.close').onclick=()=>closeWin(id);
+  el.querySelector('.min').onclick=()=>minimizeAnimated(id);
+  el.querySelector('.max').onclick=()=>toggleMaximize(id);
+  el.querySelector('.titlebar').addEventListener('dblclick',(e)=>{ if(!e.target.closest('.btns')) toggleMaximize(id); });
+  makeDraggable(el, el.querySelector('.titlebar'));
+  makeResizable(el, el.querySelector('.resize'));
+  focusWin(id); refreshTaskIcons();
+  return id;
+}
+function defaultSize(appId){
+  switch(appId){ case 'terminal': return {w:540,h:340}; case 'calc': return {w:270,h:380}; case 'settings': return {w:520,h:420}; case 'about': return {w:360,h:320}; case 'files': return {w:600,h:400}; case 'notepad': return {w:540,h:380}; case 'sysinfo': return {w:460,h:440}; case 'publisher': return {w:500,h:440}; default: return {w:480,h:380}; }
+}
+function getWin(id){ return state.windows.find(w=>w.id===id); }
+function focusWin(id){ const w=getWin(id); if(!w) return; w.el.style.zIndex=++state.z; document.querySelectorAll('.win').forEach(e=>e.classList.remove('focused')); w.el.classList.add('focused'); }
+function closeWin(id){ const w=getWin(id); if(!w) return; w.el.style.transition='opacity .16s ease, transform .16s ease'; w.el.style.opacity='0'; w.el.style.transform+=' scale(.96)'; setTimeout(()=>{ w.el.remove(); state.windows=state.windows.filter(x=>x.id!==id); refreshTaskIcons(); },150); }
+function minimizeAnimated(id){
+  const w=getWin(id); if(!w||w.minimized) return;
+  const target=getDockTargetRect(w.appId); const rect=w.el.getBoundingClientRect();
+  const dx=target.x-(rect.left+rect.width/2), dy=target.y-(rect.top+rect.height/2);
+  w.el.style.transition='transform .3s cubic-bezier(.4,0,.6,1), opacity .3s ease';
+  w.el.style.transform=`translate(${dx}px,${dy}px) scale(.12)`; w.el.style.opacity='0';
+  setTimeout(()=>{ w.minimized=true; w.el.classList.add('minimized'); w.el.style.transition=''; w.el.style.transform=''; w.el.style.opacity='1'; refreshTaskIcons(); },300);
+}
+function restoreWin(id){ const w=getWin(id); if(!w) return; w.minimized=false; w.el.classList.remove('minimized'); w.el.style.animation='none'; requestAnimationFrame(()=>{ w.el.style.animation='winOpen .22s cubic-bezier(.2,.9,.3,1.1)'; }); focusWin(id); refreshTaskIcons(); }
+function toggleMaximize(id){
+  const w=getWin(id); if(!w) return;
+  if(!w.maximized){ w.prevRect={left:w.el.style.left, top:w.el.style.top, width:w.el.style.width, height:w.el.style.height}; const topOffset=(state.theme==='win')?0:28; w.el.style.left='0px'; w.el.style.top=topOffset+'px'; w.el.style.width='100%'; w.el.style.height=(state.theme==='win')?`calc(100% - var(--taskbar-h))`:`calc(100% - ${topOffset}px)`; w.el.classList.add('max'); w.maximized=true; }
+  else { Object.assign(w.el.style, w.prevRect); w.el.classList.remove('max'); w.maximized=false; }
+}
+function makeDraggable(el, handle){
+  let sx,sy,sl,st,dragging=false;
+  handle.addEventListener('mousedown',(e)=>{ if(e.target.closest('.btns')) return; const w=state.windows.find(x=>x.el===el); if(w&&w.maximized) return; dragging=true; sx=e.clientX; sy=e.clientY; sl=el.offsetLeft; st=el.offsetTop; e.preventDefault(); });
+  document.addEventListener('mousemove',(e)=>{ if(!dragging) return; el.style.left=(sl+(e.clientX-sx))+'px'; el.style.top=Math.max(0,(st+(e.clientY-sy)))+'px'; });
+  document.addEventListener('mouseup',()=>dragging=false);
+}
+function makeResizable(el, handle){
+  let sx,sy,sw,sh,resizing=false;
+  handle.addEventListener('mousedown',(e)=>{ resizing=true; sx=e.clientX; sy=e.clientY; sw=el.offsetWidth; sh=el.offsetHeight; e.preventDefault(); e.stopPropagation(); });
+  document.addEventListener('mousemove',(e)=>{ if(!resizing) return; el.style.width=Math.max(250,sw+(e.clientX-sx))+'px'; el.style.height=Math.max(180,sh+(e.clientY-sy))+'px'; });
+  document.addEventListener('mouseup',()=>resizing=false);
+}
+
+/* ================= APP RENDERERS ================= */
+function renderApp(appId, winId){
+  switch(appId){
+    case 'notepad': return `<div class="notepad-wrap"><div class="notepad-list" id="nlist_${winId}"></div><div class="notepad-main">
+      <div class="app-toolbar"><button onclick="notepadNew('${winId}')">${rawIcon('doc')} ${t('npNew')}</button><button onclick="notepadSave('${winId}')">${rawIcon('folder')} ${t('npSave')}</button><button onclick="notepadDelete('${winId}')">${rawIcon('trash')} ${t('npDelete')}</button></div>
+      <textarea id="ta_${winId}" placeholder="${t('npPh')}"></textarea></div></div>`;
+    case 'calc': return `<div class="calc" id="calc_${winId}"><div class="screen">0</div><div class="grid">
+      <button class="gray" data-k="C">C</button><button class="gray" data-k="±">±</button><button class="gray" data-k="%">%</button><button class="op" data-k="/">÷</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="*">×</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="-">−</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="+">+</button>
+      <button data-k="0" style="grid-column:span 2;">0</button><button data-k=".">.</button><button class="eq" data-k="=">=</button></div></div>`;
+    case 'terminal': return `<div class="term" id="term_${winId}"><div class="line">AFDOS Terminal — type <b>help</b></div><div id="term_out_${winId}"></div><div class="line"><span class="prompt" id="term_prompt_${winId}">afdos:~/Desktop$</span> <input id="term_in_${winId}"></div></div>`;
+    case 'files': return `<div class="files">
+      <div class="app-toolbar">
+        <button onclick="filesNewText('${winId}')">${rawIcon('txt')} ${t('filesNew')}</button>
+        <button onclick="filesUploadClick('${winId}')">${rawIcon('folder')} ${t('filesUpload')}</button>
+        <button onclick="filesRename('${winId}')">${t('filesRename')}</button>
+        <button onclick="filesDelete('${winId}')">${rawIcon('trash')} ${t('filesDelete')}</button>
+        <button onclick="filesDownload('${winId}')">${t('filesDownload')}</button>
+        <button onclick="filesPublish('${winId}')">${rawIcon('publisher')} ${t('publishBtn')}</button>
+        <div class="inline-create" id="fcreate_${winId}" style="display:none;"><input id="fcreate_input_${winId}" placeholder="${t('filesNamePh')}"><button onclick="filesConfirmCreate('${winId}')">${t('filesConfirm')}</button></div>
+      </div>
+      <div class="body" style="position:relative;">
+        <div class="side" id="fside_${winId}"></div>
+        <div class="main" id="fmain_${winId}"></div>
+        <div class="drop-hint" id="fdrop_${winId}">${t('dropHere')}</div>
+      </div></div>`;
+    case 'settings': return `<div class="settings">
+      <h3>${t('setLanguage')}</h3><div class="langgrid" id="slang_${winId}"></div>
+      <h3>${t('setAppearance')}</h3><div class="themes" id="stheme_${winId}"></div>
+      <h3>${t('setWallpaper')}</h3><div class="wallpapers" id="swall_${winId}"></div>
+      <h3>${t('setDisplayName')}</h3><div class="namebox"><input id="sname_${winId}" value="${state.displayName}"><button onclick="saveDisplayName('${winId}')">${t('setSave')}</button></div>
+    </div>`;
+    case 'sysinfo': return `<div class="sysinfo"><div class="note">${t('sysNote')}</div><table id="sysinfo_${winId}"></table></div>`;
+    case 'publisher': return `<div class="publisher"><div class="warn">${t('pubWarn')}</div><div class="feed" id="pubfeed_${winId}"><div class="empty">…</div></div></div>`;
+    case 'about': return `<div class="about">${svgIcon('about')}<h2>AFDOS 1.0</h2><p>Any-Flavor Desktop OS</p><p>${t('aboutDesc1')}</p><p class="foot">${t('aboutDesc2')}</p></div>`;
+    default: return '<div style="padding:24px;">N/A</div>';
+  }
+}
+function initAppLogic(appId, winId, el, winObj){
+  if(appId==='calc') initCalc(winId, el);
+  if(appId==='terminal') initTerminal(winId, el);
+  if(appId==='files') initFiles(winId, el);
+  if(appId==='settings') initSettings(winId, el);
+  if(appId==='notepad') initNotepad(winId, el, winObj);
+  if(appId==='sysinfo') initSysInfo(winId, el);
+  if(appId==='publisher') initPublisher(winId, el);
+}
+
+/* ----- Calculator ----- */
+function initCalc(winId, el){
+  const root=el.querySelector('#calc_'+winId), screen=root.querySelector('.screen');
+  let cur='0', prev=null, op=null, resetNext=false;
+  const render=()=>screen.textContent=cur;
+  const calc=(a,b,o)=>{ a=parseFloat(a); b=parseFloat(b); return o==='+'?a+b:o==='-'?a-b:o==='*'?a*b:(b===0?0:a/b); };
+  root.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const k=btn.dataset.k;
+      if(k==='C'){ cur='0'; prev=null; op=null; }
+      else if(k==='±'){ cur=String(parseFloat(cur)*-1); }
+      else if(k==='%'){ cur=String(parseFloat(cur)/100); }
+      else if(['+','-','*','/'].includes(k)){ if(op&&!resetNext) cur=String(calc(prev,cur,op)); prev=cur; op=k; resetNext=true; }
+      else if(k==='='){ if(op){ cur=String(calc(prev,cur,op)); op=null; prev=null; } }
+      else if(k==='.'){ if(resetNext){ cur='0.'; resetNext=false; } else if(!cur.includes('.')) cur+='.'; }
+      else { if(cur==='0'||resetNext){ cur=k; resetNext=false; } else cur+=k; }
+      render();
+    });
+  });
+}
+
+/* ----- Terminal ----- */
+function initTerminal(winId, el){
+  const out=el.querySelector('#term_out_'+winId), input=el.querySelector('#term_in_'+winId);
+  const termBox=el.querySelector('#term_'+winId), promptEl=el.querySelector('#term_prompt_'+winId);
+  const history=[]; let hIdx=-1; let cwd='Desktop';
+  const print=(txt)=>{ const d=document.createElement('div'); d.className='line'; d.textContent=txt; out.appendChild(d); termBox.scrollTop=termBox.scrollHeight; };
+  const updatePrompt=()=>promptEl.textContent=`afdos:~/${cwd}$`;
+  async function run(line){
+    print(`afdos:~/${cwd}$ ${line}`);
+    const [cmd,...args]=line.trim().split(/\s+/);
+    switch(cmd){
+      case '': break;
+      case 'help': print('Commands: ls, cd <folder>, cat <file>, touch <file>, rm <file>, pwd, whoami, date, neofetch, theme win|mac|linux, lang fa|en|tr|ar, clear'); break;
+      case 'pwd': print('~/'+cwd); break;
+      case 'ls': print((FS[cwd]||[]).map(f=>f.name).join('  ')||'(empty)'); break;
+      case 'cd': if(FOLDERS.includes(args[0])){ cwd=args[0]; updatePrompt(); } else print('No such folder: '+args.join(' ')); break;
+      case 'cat': { const f=(FS[cwd]||[]).find(x=>x.name===args.join(' ')); if(!f) print('File not found'); else if(f.type!=='txt') print('Not a text file'); else print(f.content||'(empty)'); break; }
+      case 'touch': { const name=args.join(' ')||'untitled.txt'; FS[cwd].push({id:uid(), name, type:'txt', content:''}); await persistFS(); if(cwd==='Desktop') buildDesktopIcons(); print('Created: '+name); break; }
+      case 'rm': { const name=args.join(' '); const before=FS[cwd].length; FS[cwd]=FS[cwd].filter(x=>x.name!==name); if(FS[cwd].length<before){ await persistFS(); if(cwd==='Desktop') buildDesktopIcons(); print('Removed: '+name); } else print('File not found'); break; }
+      case 'whoami': print(state.displayName+'@AFDOS'); break;
+      case 'date': print(new Date().toString()); break;
+      case 'clear': out.innerHTML=''; break;
+      case 'neofetch': print('AFDOS 1.0 — Any-Flavor Desktop OS'); print('theme: '+state.theme+'  lang: '+state.lang); print('windows open: '+state.windows.length); break;
+      case 'theme': if(['win','mac','linux'].includes(args[0])){ setTheme(args[0]); print('theme -> '+args[0]); } else print('usage: theme win|mac|linux'); break;
+      case 'lang': if(LANGS[args[0]]){ state.lang=args[0]; applyLang(); persistPrefs(); print('lang -> '+args[0]); } else print('usage: lang fa|en|tr|ar'); break;
+      default: print(cmd+': command not found');
+    }
+  }
+  input.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){ const v=input.value; history.push(v); hIdx=history.length; run(v); input.value=''; }
+    else if(e.key==='ArrowUp'){ if(hIdx>0){ hIdx--; input.value=history[hIdx]; } }
+    else if(e.key==='ArrowDown'){ if(hIdx<history.length-1){ hIdx++; input.value=history[hIdx]; } else { hIdx=history.length; input.value=''; } }
+  });
+  el.addEventListener('mousedown',()=>setTimeout(()=>input.focus(),0));
+  updatePrompt();
+}
+
+/* ----- Files (real CRUD + real upload/download, persisted for text) ----- */
+const filesUIState = {};
+function initFiles(winId, el){
+  filesUIState[winId]={folder:'Desktop', selected:null};
+  const side=el.querySelector('#fside_'+winId);
+  FOLDERS.forEach((folder,i)=>{
+    const it=document.createElement('div'); it.className='item'+(i===0?' active':'');
+    it.innerHTML=svgIcon('folder')+t('folders.'+folder);
+    it.onclick=()=>{ side.querySelectorAll('.item').forEach(x=>x.classList.remove('active')); it.classList.add('active'); filesUIState[winId].folder=folder; filesUIState[winId].selected=null; renderFiles(winId, el); };
+    side.appendChild(it);
+  });
+  renderFiles(winId, el);
+}
+function renderFiles(winId, el){
+  const st=filesUIState[winId]; const main=el.querySelector('#fmain_'+winId); main.innerHTML='';
+  const list=FS[st.folder]||[];
+  if(!list.length){ main.innerHTML=`<div class="empty">${t('filesEmpty')}</div>`; return; }
+  list.forEach(f=>{
+    const d=document.createElement('div'); d.className='f'+(st.selected===f.id?' sel':'');
+    const sizeTxt = blobStore[f.id] ? fmtSize(blobStore[f.id].file.size) : '';
+    d.innerHTML = svgIcon(fileIconName(f.type)) + `<div>${f.name}</div>` + (sizeTxt?`<div class="sz">${sizeTxt}</div>`:'');
+    d.onclick=(e)=>{ e.stopPropagation(); st.selected=f.id; renderFiles(winId, el); };
+    d.ondblclick=()=>openFileEntry(st.folder, f.id);
+    main.appendChild(d);
+  });
+}
+function openFileEntry(folder, fileId){
+  const f=(FS[folder]||[]).find(x=>x.id===fileId); if(!f) return;
+  if(f.type==='txt'){ openApp('notepad', {folder, fileId}); }
+  else if(f.type==='image' && blobStore[fileId]){
+    const id=openApp('about'); // reuse a plain window as viewer
+    const w=getWin(id); w.el.querySelector('.content').innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#111;"><img src="${blobStore[fileId].url}" style="max-width:100%;max-height:100%;"></div>`;
+  } else {
+    toast(t('notOpenable'));
+  }
+}
+function filesNewText(winId){ const box=document.getElementById('fcreate_'+winId); box.style.display='flex'; document.getElementById('fcreate_input_'+winId).value=''; document.getElementById('fcreate_input_'+winId).focus(); }
+async function filesConfirmCreate(winId){
+  const st=filesUIState[winId]; const name=document.getElementById('fcreate_input_'+winId).value.trim();
+  if(!name){ toast(t('noName')); return; }
+  const finalName = name.includes('.') ? name : name+'.txt';
+  FS[st.folder].push({id:uid(), name:finalName, type:'txt', content:''});
+  await persistFS();
+  document.getElementById('fcreate_'+winId).style.display='none';
+  const el=document.getElementById('fmain_'+winId).closest('.win');
+  renderFiles(winId, el); if(st.folder==='Desktop') buildDesktopIcons();
+}
+async function filesRename(winId){
+  const st=filesUIState[winId]; if(!st.selected){ toast(t('noSelection')); return; }
+  const box=document.getElementById('fcreate_'+winId); box.style.display='flex';
+  const f=FS[st.folder].find(x=>x.id===st.selected);
+  const input=document.getElementById('fcreate_input_'+winId); input.value=f.name; input.focus();
+  const btn=document.querySelector(`#fcreate_${winId} button`);
+  btn.onclick = async ()=>{
+    f.name=input.value.trim()||f.name; await persistFS(); box.style.display='none';
+    renderFiles(winId, document.getElementById('fmain_'+winId).closest('.win'));
+    if(st.folder==='Desktop') buildDesktopIcons();
+    btn.onclick = ()=>filesConfirmCreate(winId);
+    toast(t('renamed'));
+  };
+}
+async function filesDelete(winId){
+  const st=filesUIState[winId]; if(!st.selected){ toast(t('noSelection')); return; }
+  delete blobStore[st.selected];
+  FS[st.folder]=FS[st.folder].filter(x=>x.id!==st.selected); st.selected=null;
+  await persistFS();
+  renderFiles(winId, document.getElementById('fmain_'+winId).closest('.win'));
+  if(st.folder==='Desktop') buildDesktopIcons();
+  toast(t('deleted'));
+}
+async function filesDownload(winId){
+  const st=filesUIState[winId]; if(!st.selected){ toast(t('noSelection')); return; }
+  const f=FS[st.folder].find(x=>x.id===st.selected);
+  let url=null, revoke=false;
+  try{
+    if(blobStore[f.id]){ url=blobStore[f.id].url; }
+    else {
+      const blob=new Blob([f.content||''], {type:'text/plain'});
+      url = await safeObjectURL(blob);
+      revoke = !!(url && url.startsWith('blob:'));
+    }
+    if(!url){ toast(t('notOpenable')); return; }
+    const a=document.createElement('a'); a.href=url; a.download=f.name; document.body.appendChild(a); a.click(); a.remove();
+  }catch(e){ toast(t('notOpenable')); }
+  finally{ if(revoke) setTimeout(()=>safeRevoke(url), 2000); }
+}
+let uploadTargetWin=null;
+function filesUploadClick(winId){ uploadTargetWin=winId; document.getElementById('hiddenFileInput').click(); }
+document.getElementById('hiddenFileInput').addEventListener('change', async (e)=>{
+  const files=[...e.target.files]; await handleIncomingFiles(uploadTargetWin, files); e.target.value='';
+});
+async function handleIncomingFiles(winId, files){
+  if(!winId || !files.length) return;
+  const st=filesUIState[winId];
+  for(const file of files){
+    const type=extToType(file.name); const id=uid();
+    if(type==='txt'){
+      const content = await file.text();
+      FS[st.folder].push({id, name:file.name, type, content});
+    } else {
+      FS[st.folder].push({id, name:file.name, type, content:''});
+      const url = await safeObjectURL(file);
+      if(url) blobStore[id] = {url, file};
+    }
+  }
+  await persistFS();
+  renderFiles(winId, document.getElementById('fmain_'+winId).closest('.win'));
+  if(st.folder==='Desktop') buildDesktopIcons();
+  toast(files.length + t('uploaded'));
+}
+function setupDnD(){
+  document.addEventListener('dragover', e=>{
+    const body=e.target.closest('.files .body');
+    if(body){ e.preventDefault(); const hint=body.querySelector('.drop-hint'); if(hint) hint.classList.add('show'); }
+  });
+  document.addEventListener('dragleave', e=>{
+    const body=e.target.closest('.files .body');
+    if(body){ const hint=body.querySelector('.drop-hint'); if(hint && !body.contains(e.relatedTarget)) hint.classList.remove('show'); }
+  });
+  document.addEventListener('drop', async e=>{
+    const body=e.target.closest('.files .body'); if(!body) return;
+    e.preventDefault();
+    const hint=body.querySelector('.drop-hint'); if(hint) hint.classList.remove('show');
+    const win=body.closest('.win');
+    const wid = state.windows.find(w=>w.el===win)?.id;
+    if(wid && e.dataTransfer.files.length) await handleIncomingFiles(wid, [...e.dataTransfer.files]);
+  });
+}
+async function filesPublish(winId){
+  const st=filesUIState[winId]; if(!st.selected){ toast(t('noSelection')); return; }
+  const f=FS[st.folder].find(x=>x.id===st.selected);
+  if(f.type!=='txt'){ toast(t('mustBeText')); return; }
+  const item={ id:uid(), title:f.name, content:f.content||'', author:state.displayName||'Anonymous', ts:Date.now() };
+  await Store.setShared('pub:'+item.id, JSON.stringify(item));
+  toast(t('published'));
+}
+
+/* ----- Notepad ----- */
+function allTextFiles(){ const items=[]; FOLDERS.forEach(folder=>(FS[folder]||[]).forEach(f=>{ if(f.type==='txt') items.push({folder,f}); })); return items; }
+function initNotepad(winId, el, winObj){
+  const ta=el.querySelector('#ta_'+winId);
+  const bound = winObj.data && winObj.data.fileId ? winObj.data : null;
+  renderNotepadList(winId, el);
+  if(bound){ const f=(FS[bound.folder]||[]).find(x=>x.id===bound.fileId); if(f){ ta.value=f.content||''; winObj.data={folder:bound.folder, fileId:f.id}; highlightNotepadList(winId, el); } }
+  else { ta.value=''; winObj.data={folder:null, fileId:null}; }
+}
+function renderNotepadList(winId, el){
+  const list=el.querySelector('#nlist_'+winId); list.innerHTML='';
+  allTextFiles().forEach(({folder,f})=>{
+    const it=document.createElement('div'); it.className='nitem'; it.dataset.fid=f.id; it.textContent=f.name;
+    it.onclick=()=>{ const w=state.windows.find(w=>w.el===el); w.data={folder, fileId:f.id}; el.querySelector('#ta_'+winId).value=f.content||''; highlightNotepadList(winId, el); };
+    list.appendChild(it);
+  });
+}
+function highlightNotepadList(winId, el){ const w=state.windows.find(w=>w.el===el); el.querySelectorAll('#nlist_'+winId+' .nitem').forEach(it=>it.classList.toggle('active', w.data && it.dataset.fid===w.data.fileId)); }
+function notepadNew(winId){ const el=document.getElementById('ta_'+winId).closest('.win'); const w=state.windows.find(w=>w.el===el); w.data={folder:null, fileId:null}; document.getElementById('ta_'+winId).value=''; highlightNotepadList(winId, el); toast(t('newDocHint')); }
+async function notepadSave(winId){
+  const el=document.getElementById('ta_'+winId).closest('.win'); const w=state.windows.find(w=>w.el===el);
+  const content=document.getElementById('ta_'+winId).value;
+  if(w.data && w.data.fileId){ const f=(FS[w.data.folder]||[]).find(x=>x.id===w.data.fileId); if(f){ f.content=content; await persistFS(); toast(t('saved')); return; } }
+  const name='note-'+Math.floor(Math.random()*900+100)+'.txt';
+  FS.Documents.push({id:uid(), name, type:'txt', content});
+  w.data={folder:'Documents', fileId: FS.Documents[FS.Documents.length-1].id};
+  await persistFS(); renderNotepadList(winId, el); highlightNotepadList(winId, el);
+  toast(t('savedTo')+name);
+}
+async function notepadDelete(winId){
+  const el=document.getElementById('ta_'+winId).closest('.win'); const w=state.windows.find(w=>w.el===el);
+  if(!w.data || !w.data.fileId){ toast(t('noSelection')); return; }
+  const folder=w.data.folder;
+  FS[folder]=FS[folder].filter(x=>x.id!==w.data.fileId);
+  await persistFS(); w.data={folder:null, fileId:null};
+  document.getElementById('ta_'+winId).value=''; renderNotepadList(winId, el);
+  if(folder==='Desktop') buildDesktopIcons();
+  toast(t('noteDeleted'));
+}
+
+/* ----- Settings ----- */
+function initSettings(winId, el){
+  const tbox=el.querySelector('#stheme_'+winId), wbox=el.querySelector('#swall_'+winId), lbox=el.querySelector('#slang_'+winId);
+  const wallGrad={'wallpaper-1':'linear-gradient(135deg,#4facfe,#0a1526)','wallpaper-2':'linear-gradient(135deg,#38ef7d,#0d1a1c)','wallpaper-3':'linear-gradient(135deg,#ff5e62,#1a0d0d)','wallpaper-4':'linear-gradient(135deg,#71b280,#07211c)','wallpaper-5':'linear-gradient(135deg,#d76d77,#1a0d29)'};
+  function render(){
+    lbox.innerHTML=''; Object.keys(LANGS).forEach(code=>{ const c=document.createElement('div'); c.className='lang-card'+(state.lang===code?' active':''); c.textContent=LANGS[code].label; c.onclick=()=>{ state.lang=code; applyLang(); persistPrefs(); render(); }; lbox.appendChild(c); });
+    tbox.innerHTML=''; const themeMeta={win:{grad:'linear-gradient(135deg,#0078d4,#50e6ff)'},mac:{grad:'linear-gradient(135deg,#e5e5e5,#b0b0b0)'},linux:{grad:'linear-gradient(135deg,#e95420,#772953)'}};
+    Object.keys(themeMeta).forEach(k=>{ const c=document.createElement('div'); c.className='theme-card'+(state.theme===k?' active':''); c.innerHTML=`<div class="prev" style="background:${themeMeta[k].grad}"></div>${t('themeNames.'+k)}`; c.onclick=()=>{ setTheme(k); render(); }; tbox.appendChild(c); });
+    wbox.innerHTML=''; WALLPAPERS.forEach(w=>{ const d=document.createElement('div'); d.className='wp'+(state.wallpaper===w?' active':''); d.style.background=wallGrad[w]; d.onclick=()=>{ setWallpaper(w); render(); }; wbox.appendChild(d); });
+  }
+  render();
+}
+async function saveDisplayName(winId){
+  const name=document.getElementById('sname_'+winId).value.trim();
+  state.displayName = name || state.displayName;
+  await persistPrefs();
+  const lockName=document.getElementById('lockName'); if(lockName) lockName.textContent=state.displayName;
+  toast(t('saved'));
+}
+
+/* ----- System Info (honest, browser-level only) ----- */
+async function initSysInfo(winId, el){
+  const table=el.querySelector('#sysinfo_'+winId);
+  const rows = [];
+  rows.push([t('sysPlatform'), navigator.platform || navigator.userAgentData?.platform || '—']);
+  rows.push([t('sysCores'), (navigator.hardwareConcurrency || '—')]);
+  rows.push([t('sysMem'), navigator.deviceMemory ? (navigator.deviceMemory+' GB') : '—']);
+  rows.push([t('sysScreen'), screen.width+' × '+screen.height]);
+  rows.push([t('sysLang'), navigator.language]);
+  rows.push([t('sysTZ'), Intl.DateTimeFormat().resolvedOptions().timeZone]);
+  rows.push([t('sysOnline'), navigator.onLine ? '✔' : '✕']);
+  const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
+  rows.push([t('sysNet'), conn ? (conn.effectiveType || '—') : '—']);
+  rows.push([t('sysCookie'), navigator.cookieEnabled ? '✔' : '✕']);
+  let storageTxt = '—';
+  try{ if(navigator.storage && navigator.storage.estimate){ const est = await navigator.storage.estimate(); storageTxt = fmtSize(est.usage||0) + ' / ' + fmtSize(est.quota||0); } }catch(e){}
+  rows.push([t('sysStorage'), storageTxt]);
+  table.innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+
+/* ----- Publisher (explicit consent required to publish; readable by all) ----- */
+async function initPublisher(winId, el){
+  const feed = el.querySelector('#pubfeed_'+winId);
+  const keys = await Store.listShared('pub:');
+  if(!keys || !keys.length){ feed.innerHTML = `<div class="empty">${t('pubEmpty')}</div>`; return; }
+  const items = [];
+  for(const k of keys){
+    const raw = await Store.getShared(k);
+    if(raw){ try{ items.push(JSON.parse(raw)); }catch(e){} }
+  }
+  items.sort((a,b)=>b.ts-a.ts);
+  feed.innerHTML='';
+  items.forEach(it=>{
+    const card=document.createElement('div'); card.className='card';
+    const d=new Date(it.ts);
+    card.innerHTML = `<div class="head"><span>${t('pubBy')}${it.author}</span><span>${d.toLocaleString()}</span></div><div class="title">${it.title}</div><div class="body"></div><div style="margin-top:8px;"><button class="app-toolbar-btn" style="border:1px solid #ccc;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff;" data-id="${it.id}">${t('pubCopy')}</button></div>`;
+    card.querySelector('.body').textContent = it.content;
+    card.querySelector('button').onclick = async ()=>{
+      FS.Documents.push({id:uid(), name:it.title, type:'txt', content:it.content});
+      await persistFS(); toast(t('saved'));
+    };
+    feed.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
