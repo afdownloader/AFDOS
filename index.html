@@ -218,6 +218,12 @@ button{font-family:inherit;}
 .publisher .warn{background:#ffe9e9;border:1px solid #ffc2c2;color:#8a1f1f;border-radius:9px;padding:8px 11px;margin-bottom:10px;font-size:12px;}
 .publisher .feed{display:flex;flex-direction:column;gap:8px;}
 .publisher .card{border:1px solid #eee;border-radius:10px;padding:10px 12px;background:#fafafa;}
+.publisher .card .actions{margin-top:8px;display:flex;gap:6px;}
+.publisher .card .actions button{border:1px solid #ccc;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff;}
+.publisher .card .actions button:hover{background:#eef2ff;border-color:#c7d6ff;}
+.publisher .card .filetitle{display:flex;align-items:center;gap:8px;}
+.publisher .card .filetitle .gi{width:24px;height:24px;}
+.publisher .card .fsize{font-weight:400;color:#999;font-size:11px;}
 .publisher .card .head{display:flex;justify-content:space-between;font-size:12px;color:#777;margin-bottom:6px;}
 .publisher .card .title{font-weight:700;margin-bottom:4px;}
 .publisher .card .body{white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;max-height:120px;overflow:auto;color:#333;}
@@ -330,6 +336,7 @@ const I18N = {
     pubTitle:'AFDOS Publisher', pubWarn:'هر چیزی که اینجا منتشر کنید برای همهٔ کاربران این برنامه قابل مشاهده خواهد بود.', pubBy:'ناشر: ', pubEmpty:'هنوز چیزی منتشر نشده است', pubCopy:'کپی به اسناد من',
     aboutDesc1:'یک محیط دسکتاپ کاملاً تعاملی در مرورگر — با ظاهر ویندوز، مک اواس و لینوکس.', aboutDesc2:'ساخته‌شده با HTML، CSS و JavaScript. این یک سیستم‌عامل واقعیِ بوت‌شدنی نیست؛ یک شبیه‌سازیِ کاربردی است که از هر مرورگری در دسترس است.',
     publishBtn:'انتشار عمومی', mustBeText:'فقط فایل‌های متنی قابل انتشار هستند', published:'با موفقیت منتشر شد',
+    pubTooLarge:'حجم فایل بیش از حد مجاز برای انتشار عمومی است (حداکثر ۳ مگابایت)', pubUnavailable:'انتشار عمومی در این محیط در دسترس نیست', pubNoContent:'این فایل نمونه محتوای واقعی ندارد — یک فایل واقعی آپلود و سپس منتشر کنید',
   },
   en:{ apps:{files:'File Manager',notepad:'Notepad',calc:'Calculator',terminal:'Terminal',settings:'Settings',about:'About',sysinfo:'System Info',publisher:'AFDOS Publisher'},
     boot:'Loading AFDOS…', lockUser:'User', lockHint:'Press Enter or click the arrow', lockPwd:'Password (anything)',
@@ -348,6 +355,7 @@ const I18N = {
     pubTitle:'AFDOS Publisher', pubWarn:'Anything you publish here will be visible to every user of this app.', pubBy:'By: ', pubEmpty:'Nothing published yet', pubCopy:'Copy to my Documents',
     aboutDesc1:'A fully interactive browser desktop — with Windows, macOS and Linux looks.', aboutDesc2:'Built with HTML, CSS and JavaScript. Not a real bootable OS — a working simulation accessible from any browser.',
     publishBtn:'Publish publicly', mustBeText:'Only text files can be published', published:'Published successfully',
+    pubTooLarge:'File is too large to publish (max 3 MB)', pubUnavailable:'Public publishing is not available in this environment', pubNoContent:'This sample file has no real content — upload a real file and publish that instead',
   },
   tr:{ apps:{files:'Dosya Yöneticisi',notepad:'Not Defteri',calc:'Hesap Makinesi',terminal:'Terminal',settings:'Ayarlar',about:'Hakkında',sysinfo:'Sistem Bilgisi',publisher:'AFDOS Publisher'},
     boot:'AFDOS yükleniyor…', lockUser:'Kullanıcı', lockHint:'Enter’a basın veya oka tıklayın', lockPwd:'Şifre (herhangi bir şey)',
@@ -366,6 +374,7 @@ const I18N = {
     pubTitle:'AFDOS Publisher', pubWarn:'Burada yayınladığınız her şey bu uygulamanın tüm kullanıcıları tarafından görülebilir.', pubBy:'Yayınlayan: ', pubEmpty:'Henüz bir şey yayınlanmadı', pubCopy:'Belgelerime kopyala',
     aboutDesc1:'Tarayıcıda tam etkileşimli bir masaüstü ortamı — Windows, macOS ve Linux görünümleriyle.', aboutDesc2:'HTML, CSS ve JavaScript ile yapıldı. Gerçek önyüklenebilir bir işletim sistemi değildir; her tarayıcıdan erişilebilen çalışan bir simülasyondur.',
     publishBtn:'Herkese açık yayınla', mustBeText:'Yalnızca metin dosyaları yayınlanabilir', published:'Başarıyla yayınlandı',
+    pubTooLarge:'Dosya yayınlamak için çok büyük (maks. 3 MB)', pubUnavailable:'Bu ortamda herkese açık yayınlama kullanılamıyor', pubNoContent:'Bu örnek dosyanın gerçek içeriği yok — gerçek bir dosya yükleyip onu yayınlayın',
   },
   ar:{ apps:{files:'مدير الملفات',notepad:'المفكرة',calc:'الآلة الحاسبة',terminal:'الطرفية',settings:'الإعدادات',about:'حول',sysinfo:'معلومات النظام',publisher:'AFDOS Publisher'},
     boot:'جارٍ تحميل AFDOS…', lockUser:'المستخدم', lockHint:'اضغط Enter أو انقر على السهم', lockPwd:'كلمة المرور (أي شيء)',
@@ -384,6 +393,7 @@ const I18N = {
     pubTitle:'AFDOS Publisher', pubWarn:'كل ما تنشره هنا سيكون مرئيًا لجميع مستخدمي هذا التطبيق.', pubBy:'الناشر: ', pubEmpty:'لم يُنشر شيء بعد', pubCopy:'نسخ إلى مستنداتي',
     aboutDesc1:'بيئة سطح مكتب تفاعلية بالكامل داخل المتصفح — بمظهر ويندوز وماك أواس ولينكس.', aboutDesc2:'تم إنشاؤه باستخدام HTML وCSS وJavaScript. هذا ليس نظام تشغيل حقيقيًا قابلاً للإقلاع، بل محاكاة عملية يمكن الوصول إليها من أي متصفح.',
     publishBtn:'نشر للعامة', mustBeText:'يمكن نشر الملفات النصية فقط', published:'تم النشر بنجاح',
+    pubTooLarge:'حجم الملف كبير جدًا للنشر (الحد الأقصى 3 ميغابايت)', pubUnavailable:'النشر العام غير متاح في هذه البيئة', pubNoContent:'هذا الملف النموذجي لا يحتوي على محتوى حقيقي — قم برفع ملف حقيقي ثم انشره',
   },
 };
 function t(key){ const parts=key.split('.'); let v=I18N[state.lang]; for(const p of parts) v=v&&v[p]; return v!==undefined? v : key; }
@@ -400,7 +410,7 @@ const Store = {
   async get(key){ try{ if(window.storage){ const r=await window.storage.get(key); return r?r.value:null; } }catch(e){} return this.mem.hasOwnProperty(key)?this.mem[key]:null; },
   async set(key,value){ this.mem[key]=value; try{ if(window.storage){ await window.storage.set(key,value); } }catch(e){} },
   async getShared(key){ try{ if(window.storage){ const r=await window.storage.get(key,true); return r?r.value:null; } }catch(e){} return null; },
-  async setShared(key,value){ try{ if(window.storage){ await window.storage.set(key,value,true); } }catch(e){} },
+  async setShared(key,value){ try{ if(window.storage){ await window.storage.set(key,value,true); return true; } }catch(e){ return false; } return false; },
   async listShared(prefix){ try{ if(window.storage){ const r=await window.storage.list(prefix,true); return r?r.keys:[]; } }catch(e){} return []; },
 };
 
@@ -427,6 +437,16 @@ function extToType(name){
   return 'txt';
 }
 function fileIconName(type){ return ({txt:'txt',doc:'doc',sheet:'sheet',image:'image',archive:'archive',exe:'exe'})[type] || 'txt'; }
+function dataURLtoBlob(dataUrl){
+  const commaIdx = dataUrl.indexOf(',');
+  const header = dataUrl.slice(0, commaIdx), base64 = dataUrl.slice(commaIdx+1);
+  const mimeMatch = header.match(/data:(.*?);base64/);
+  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return new Blob([bytes], {type:mime});
+}
 function fileToDataURL(file){ return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=()=>reject(r.error); r.readAsDataURL(file); }); }
 async function safeObjectURL(file){
   try{ if(typeof URL!=='undefined' && URL.createObjectURL) return URL.createObjectURL(file); }catch(e){}
@@ -910,13 +930,25 @@ function setupDnD(){
     if(wid && e.dataTransfer.files.length) await handleIncomingFiles(wid, [...e.dataTransfer.files]);
   });
 }
+const MAX_PUBLISH_BYTES = 3.2*1024*1024; // keeps the base64-encoded payload safely under the 5MB shared-storage limit
 async function filesPublish(winId){
   const st=filesUIState[winId]; if(!st.selected){ toast(t('noSelection')); return; }
+  if(typeof window.storage==='undefined' || !window.storage){ toast(t('pubUnavailable')); return; }
   const f=FS[st.folder].find(x=>x.id===st.selected);
-  if(f.type!=='txt'){ toast(t('mustBeText')); return; }
-  const item={ id:uid(), title:f.name, content:f.content||'', author:state.displayName||'Anonymous', ts:Date.now() };
-  await Store.setShared('pub:'+item.id, JSON.stringify(item));
-  toast(t('published'));
+  let item;
+  if(f.type==='txt'){
+    item = { id:uid(), kind:'text', title:f.name, content:f.content||'', author:state.displayName||'Anonymous', ts:Date.now() };
+  } else if(blobStore[f.id]){
+    const file = blobStore[f.id].file;
+    if(file.size > MAX_PUBLISH_BYTES){ toast(t('pubTooLarge')); return; }
+    let dataUrl;
+    try{ dataUrl = await fileToDataURL(file); }catch(e){ toast(t('pubTooLarge')); return; }
+    item = { id:uid(), kind:'file', title:f.name, fileType:f.type, mime:file.type||'application/octet-stream', size:file.size, dataUrl, author:state.displayName||'Anonymous', ts:Date.now() };
+  } else {
+    toast(t('pubNoContent')); return;
+  }
+  const ok = await Store.setShared('pub:'+item.id, JSON.stringify(item));
+  toast(ok ? t('published') : t('pubTooLarge'));
 }
 
 /* ----- Notepad ----- */
@@ -1012,24 +1044,35 @@ async function initPublisher(winId, el){
   items.sort((a,b)=>b.ts-a.ts);
   feed.innerHTML='';
   items.forEach(it=>{
+    const kind = it.kind || 'text';
     const card=document.createElement('div'); card.className='card';
     const d=new Date(it.ts);
-    card.innerHTML = `<div class="head"><span>${t('pubBy')}${it.author}</span><span>${d.toLocaleString()}</span></div><div class="title">${it.title}</div><div class="body"></div><div style="margin-top:8px;"><button class="app-toolbar-btn" style="border:1px solid #ccc;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;background:#fff;" data-id="${it.id}">${t('pubCopy')}</button></div>`;
-    card.querySelector('.body').textContent = it.content;
-    card.querySelector('button').onclick = async ()=>{
-      FS.Documents.push({id:uid(), name:it.title, type:'txt', content:it.content});
-      await persistFS(); toast(t('saved'));
-    };
+    const head = `<div class="head"><span>${t('pubBy')}${it.author}</span><span>${d.toLocaleString()}</span></div>`;
+    if(kind==='text'){
+      card.innerHTML = head + `<div class="title">${it.title}</div><div class="body"></div><div class="actions"><button class="pcopy">${t('pubCopy')}</button></div>`;
+      card.querySelector('.body').textContent = it.content;
+      card.querySelector('.pcopy').onclick = async ()=>{
+        FS.Documents.push({id:uid(), name:it.title, type:'txt', content:it.content});
+        await persistFS(); toast(t('saved'));
+      };
+    } else {
+      card.innerHTML = head + `<div class="title filetitle">${svgIcon(fileIconName(it.fileType))}<span>${it.title}</span><span class="fsize">${fmtSize(it.size)}</span></div><div class="actions"><button class="pdl">${t('filesDownload')}</button><button class="pcopy">${t('pubCopy')}</button></div>`;
+      card.querySelector('.pdl').onclick=()=>{
+        const a=document.createElement('a'); a.href=it.dataUrl; a.download=it.title; document.body.appendChild(a); a.click(); a.remove();
+      };
+      card.querySelector('.pcopy').onclick = async ()=>{
+        try{
+          const blob = dataURLtoBlob(it.dataUrl);
+          const nid = uid();
+          FS.Documents.push({id:nid, name:it.title, type:it.fileType, content:''});
+          blobStore[nid] = {url: it.dataUrl, file: blob};
+          await persistFS(); toast(t('saved'));
+        }catch(e){ toast(t('pubTooLarge')); }
+      };
+    }
     feed.appendChild(card);
   });
 }
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
